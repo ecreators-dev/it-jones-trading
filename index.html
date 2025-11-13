@@ -97,6 +97,11 @@
       font-size: 0.85rem;
     }
 
+    input[type="range"] {
+      padding: 0;
+      background: transparent;
+    }
+
     input:focus,
     select:focus {
       outline: none;
@@ -193,6 +198,12 @@
     .small {
       font-size: 0.72rem;
     }
+
+    .sim-summary {
+      margin: 6px 0 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -215,8 +226,32 @@
     </div>
 
     <div class="input-group">
-      <label for="reserveSplit">Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird (%)</label>
-      <input id="reserveSplit" type="number" value="100" step="1">
+      <label for="reserveSplit"
+        >Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird
+        (<span id="reserveSplitDisplay">50&nbsp;%</span>)</label
+      >
+      <input
+        id="reserveSplit"
+        type="range"
+        value="50"
+        min="0"
+        max="100"
+        step="1"
+        list="reserveSplitTicks"
+      />
+      <datalist id="reserveSplitTicks">
+        <option value="0"></option>
+        <option value="10"></option>
+        <option value="20"></option>
+        <option value="30"></option>
+        <option value="40"></option>
+        <option value="50"></option>
+        <option value="60"></option>
+        <option value="70"></option>
+        <option value="80"></option>
+        <option value="90"></option>
+        <option value="100"></option>
+      </datalist>
     </div>
 
     <div class="input-group">
@@ -265,6 +300,9 @@
 
   <div class="card">
     <h3>Kapitalentwicklung über 12 Monate</h3>
+    <p id="sim-summary" class="sim-summary">
+      Die Simulation wird mit deinen Eingaben berechnet …
+    </p>
     <canvas id="cap-chart" width="1530" height="180"></canvas>
     <table id="tbl-sim">
       <tbody>
@@ -296,6 +334,16 @@
 
     function eur(v) {
       return "(" + fmt(v) + " €)";
+    }
+
+    function fmtPercent(value, digits = 1) {
+      if (!isFinite(value)) return "-";
+      const factor = Math.pow(10, digits);
+      const rounded = Math.round(value * factor) / factor;
+      if (Math.abs(Math.round(rounded) - rounded) < 1e-9) {
+        return Math.round(rounded).toString().replace(".", ",");
+      }
+      return rounded.toFixed(digits).replace(".", ",");
     }
 
     function togglePanel(id, accEl) {
@@ -331,6 +379,11 @@
       const mode = document.getElementById("mode").value;
       const pufInput = parseFloat(document.getElementById("puf").value || "0");
       const reserveSplitInput = parseFloat(document.getElementById("reserveSplit").value || "0");
+      const reserveSplitDisplay = document.getElementById("reserveSplitDisplay");
+      if (reserveSplitDisplay) {
+        reserveSplitDisplay.textContent =
+          fmtPercent(reserveSplitInput, 1) + " %";
+      }
       const B2 = parseFloat(document.getElementById("b2").value || "0") / 100;
       const B3 = parseFloat(document.getElementById("b3").value || "0");
       const B4 = parseFloat(document.getElementById("b4").value || "0");
@@ -448,6 +501,8 @@
           pufferGesamtEUR === 0
             ? 0
             : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
+        const reservePctText = fmtPercent(reservePct, 1);
+        const reinvestPctText = fmtPercent(reinvestPct, 1);
 
         const splitText =
           "Nach Steuern und Fixkosten bleiben dir <strong>" +
@@ -455,13 +510,13 @@
           "</strong> <span class=\"eur-inline\">" +
           eur(pufferGesamtEUR) +
           "</span> als Puffer übrig. Du legst davon " +
-          fmt(reservePct, 1).replace(".", ",") +
+          reservePctText +
           " % = <strong>" +
           usd(reserveUSD) +
           "</strong> <span class=\"eur-inline\">" +
           eur(monatlicheReserveEUR) +
           "</span> für deine Sicherheitsreserve zur Seite. Der Rest von " +
-          fmt(reinvestPct, 1).replace(".", ",") +
+          reinvestPctText +
           " % = <strong>" +
           usd(reinvestUSD) +
           "</strong> <span class=\"eur-inline\">" +
@@ -473,6 +528,40 @@
           "</span> zurück.";
 
         splitTextEl.innerHTML = splitText;
+      }
+
+      const simSummaryEl = document.getElementById("sim-summary");
+      if (simSummaryEl) {
+        const reserveUSD = monatlicheReserveEUR * B3;
+        const reinvestUSD = monatlicherReinvestEUR * B3;
+        const reservePct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicheReserveEUR / pufferGesamtEUR) * 100;
+        const reinvestPct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
+
+        if (pufferGesamtEUR === 0) {
+          simSummaryEl.textContent =
+            "Probenrechnung: In diesem Szenario entsteht kein Pufferbetrag, daher wird weder reinvestiert noch eine Sicherheitsreserve aufgebaut.";
+        } else {
+          simSummaryEl.innerHTML =
+            "Probenrechnung: Du reinvestierst <strong>" +
+            fmtPercent(reinvestPct, 1) +
+            " % = " +
+            usd(reinvestUSD) +
+            "</strong> <span class=\"eur-inline\">" +
+            eur(monatlicherReinvestEUR) +
+            "</span> und entnimmst <strong>" +
+            fmtPercent(reservePct, 1) +
+            " % = " +
+            usd(reserveUSD) +
+            "</strong> <span class=\"eur-inline\">" +
+            eur(monatlicheReserveEUR) +
+            "</span> für die kumulierte Sicherheitsreserve.";
+        }
       }
 
       const gesamtLastEUR = taxEUR + ruecklageEUR;
@@ -858,13 +947,13 @@
         " " +
         eur(pufferGesamtEUR) +
         " übrig. Auf Basis der aktuellen Einstellung werden davon " +
-        fmt(reserveSplitInput, 1).replace(".", ",") +
+        fmtPercent(reserveSplitInput, 1) +
         " % (" +
         usd(monatlicheReserveEUR * B3) +
         " " +
         eur(monatlicheReserveEUR) +
         ") als Sicherheitsreserve beiseite gelegt und " +
-        fmt(100 - reserveSplitInput, 1).replace(".", ",") +
+        fmtPercent(100 - reserveSplitInput, 1) +
         " % (" +
         usd(monatlicherReinvestEUR * B3) +
         " " +
