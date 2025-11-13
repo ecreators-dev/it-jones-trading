@@ -22,6 +22,7 @@
       margin: 0;
       padding: 10px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12pt;
       background: var(--bg);
       color: var(--text-main);
     }
@@ -53,6 +54,27 @@
       margin-bottom: 10px;
     }
 
+    .split-summary {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #152021;
+      border: 1px solid var(--border);
+    }
+
+    .split-summary h3 {
+      margin: 0 0 6px 0;
+      font-size: 0.9rem;
+      color: var(--accent-soft);
+    }
+
+    .split-summary p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
     .input-group {
       margin-bottom: 8px;
       font-size: 0.8rem;
@@ -73,6 +95,11 @@
       background: #0b1011;
       color: var(--text-main);
       font-size: 0.85rem;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      background: transparent;
     }
 
     input:focus,
@@ -105,6 +132,12 @@
     .eur {
       font-size: 0.65rem;
       color: var(--text-muted);
+    }
+
+    .eur-inline {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 4px;
     }
 
     .negative {
@@ -165,6 +198,12 @@
     .small {
       font-size: 0.72rem;
     }
+
+    .sim-summary {
+      margin: 6px 0 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -187,8 +226,32 @@
     </div>
 
     <div class="input-group">
-      <label for="reserveSplit">Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird (%)</label>
-      <input id="reserveSplit" type="number" value="100" step="1">
+      <label for="reserveSplit"
+        >Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird
+        (<span id="reserveSplitDisplay">50&nbsp;%</span>)</label
+      >
+      <input
+        id="reserveSplit"
+        type="range"
+        value="50"
+        min="0"
+        max="100"
+        step="1"
+        list="reserveSplitTicks"
+      />
+      <datalist id="reserveSplitTicks">
+        <option value="0"></option>
+        <option value="10"></option>
+        <option value="20"></option>
+        <option value="30"></option>
+        <option value="40"></option>
+        <option value="50"></option>
+        <option value="60"></option>
+        <option value="70"></option>
+        <option value="80"></option>
+        <option value="90"></option>
+        <option value="100"></option>
+      </datalist>
     </div>
 
     <div class="input-group">
@@ -216,6 +279,11 @@
     <h2>Ergebnisse (Monat)</h2>
     <table id="tbl-main"><tbody><tr><td class="label">Startkapital</td><td class="value"> 6359,88 $<div class="eur">(5482,65 €)</div></td></tr><tr><td class="label">Brutto-Gewinn</td><td class="value"> 5970,51 $<div class="eur">(5146,99 €)</div></td></tr><tr><td class="label">Steueranteil (26,375 %)</td><td class="value"> 1574,72 $<div class="eur">(1357,52 €)</div></td></tr><tr><td class="label">Netto-Gewinn vor Auszahlung</td><td class="value  highlight"> 4395,79 $<div class="eur">(3789,47 €)</div></td></tr><tr><td class="label">Auszahlung Fixkosten</td><td class="value negative"> -4176,00 $<div class="eur">(3600,00 €)</div></td></tr><tr><td class="label">Rücklagenbeitrag (gesamt)</td><td class="value"> 219,79 $<div class="eur">(189,47 €)</div></td></tr><tr><td class="label">Endkapital</td><td class="value"> 6579,67 $ (ROE: 3,46 %)<div class="eur">(5672,13 €)</div></td></tr></tbody></table>
 
+    <div class="split-summary">
+      <h3>So verteilst du deinen Puffer</h3>
+      <p id="split-text">Die Beträge werden anhand deiner Einstellungen berechnet.</p>
+    </div>
+
     <div class="sec-title">Sicherheitsreserven (Empfehlung)</div>
     <table id="tbl-safety"><tbody><tr><td class="label">Notgroschen (5× Fixkosten)</td><td class="value"> 20880,00 $<div class="eur">(18000,00 €)</div></td></tr><tr><td class="label">Doppeltes Startkapital</td><td class="value"> 12719,76 $<div class="eur">(10965,31 €)</div></td></tr><tr><td class="label">Startkapital + 3× Fixkosten</td><td class="value"> 18887,88 $<div class="eur">(16282,65 €)</div></td></tr></tbody></table>
 
@@ -232,8 +300,25 @@
 
   <div class="card">
     <h3>Kapitalentwicklung über 12 Monate</h3>
+    <p id="sim-summary" class="sim-summary">
+      Die Simulation wird mit deinen Eingaben berechnet …
+    </p>
     <canvas id="cap-chart" width="1530" height="180"></canvas>
-    <table id="tbl-sim"><tbody><tr><td class="label">Monat</td><td class="value">Kapital Beginn</td><td class="value">Brutto-Gewinn</td><td class="value">Kapital Ende</td><td class="value">kumulierte Sicherheitsrücklage</td></tr><tr><td class="label">1</td><td class="value">6359,88 $<div class="eur">(5482,65 €)</div></td><td class="value">5970,51 $<div class="eur">(5146,99 €)</div></td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">109,89 $<div class="eur">(94,74 €)</div></td></tr><tr><td class="label">2</td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">6073,68 $<div class="eur">(5235,93 €)</div></td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">257,77 $<div class="eur">(222,21 €)</div></td></tr><tr><td class="label">3</td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">6212,50 $<div class="eur">(5355,60 €)</div></td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">456,74 $<div class="eur">(393,74 €)</div></td></tr><tr><td class="label">4</td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">6399,29 $<div class="eur">(5516,63 €)</div></td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">724,48 $<div class="eur">(624,55 €)</div></td></tr><tr><td class="label">5</td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">6650,64 $<div class="eur">(5733,31 €)</div></td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">1084,75 $<div class="eur">(935,13 €)</div></td></tr><tr><td class="label">6</td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">6988,85 $<div class="eur">(6024,87 €)</div></td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">1569,52 $<div class="eur">(1353,04 €)</div></td></tr><tr><td class="label">7</td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">7443,94 $<div class="eur">(6417,19 €)</div></td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">2221,82 $<div class="eur">(1915,37 €)</div></td></tr><tr><td class="label">8</td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">8056,31 $<div class="eur">(6945,10 €)</div></td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">3099,55 $<div class="eur">(2672,03 €)</div></td></tr><tr><td class="label">9</td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">8880,30 $<div class="eur">(7655,43 €)</div></td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">4280,61 $<div class="eur">(3690,19 €)</div></td></tr><tr><td class="label">10</td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">9989,06 $<div class="eur">(8611,26 €)</div></td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">5869,84 $<div class="eur">(5060,20 €)</div></td></tr><tr><td class="label">11</td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">11480,98 $<div class="eur">(9897,40 €)</div></td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">8008,27 $<div class="eur">(6903,68 €)</div></td></tr><tr><td class="label">12</td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">13488,50 $<div class="eur">(11628,02 €)</div></td><td class="value">17245,61 $<div class="eur">(14866,90 €)</div></td><td class="value">10885,73 $<div class="eur">(9384,25 €)</div></td></tr></tbody></table>
+    <table id="tbl-sim">
+      <tbody>
+        <tr>
+          <td class="label">Monat</td>
+          <td class="value">Kapital Beginn</td>
+          <td class="value">Brutto-Gewinn</td>
+          <td class="value">Reinvestiert</td>
+          <td class="value">kumulierte Sicherheitsrücklage</td>
+          <td class="value">Kapital nächster Monat</td>
+        </tr>
+        <tr>
+          <td class="label" colspan="6">Wird mit deinen Eingaben berechnet …</td>
+        </tr>
+      </tbody>
+    </table>
     <p id="notgroschen-text" class="notgroschen-note">Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.</p>
   </div>
 
@@ -249,6 +334,16 @@
 
     function eur(v) {
       return "(" + fmt(v) + " €)";
+    }
+
+    function fmtPercent(value, digits = 1) {
+      if (!isFinite(value)) return "-";
+      const factor = Math.pow(10, digits);
+      const rounded = Math.round(value * factor) / factor;
+      if (Math.abs(Math.round(rounded) - rounded) < 1e-9) {
+        return Math.round(rounded).toString().replace(".", ",");
+      }
+      return rounded.toFixed(digits).replace(".", ",");
     }
 
     function togglePanel(id, accEl) {
@@ -284,6 +379,11 @@
       const mode = document.getElementById("mode").value;
       const pufInput = parseFloat(document.getElementById("puf").value || "0");
       const reserveSplitInput = parseFloat(document.getElementById("reserveSplit").value || "0");
+      const reserveSplitDisplay = document.getElementById("reserveSplitDisplay");
+      if (reserveSplitDisplay) {
+        reserveSplitDisplay.textContent =
+          fmtPercent(reserveSplitInput, 1) + " %";
+      }
       const B2 = parseFloat(document.getElementById("b2").value || "0") / 100;
       const B3 = parseFloat(document.getElementById("b3").value || "0");
       const B4 = parseFloat(document.getElementById("b4").value || "0");
@@ -387,6 +487,83 @@
       );
       document.getElementById("tbl-main").innerHTML = mainRows.join("");
 
+      const splitTextEl = document.getElementById("split-text");
+      if (splitTextEl) {
+        const pufferUSD = pufferGesamtEUR * B3;
+        const reserveUSD = monatlicheReserveEUR * B3;
+        const reinvestUSD = monatlicherReinvestEUR * B3;
+        const steuerUSD = taxEUR * B3;
+        const reservePct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicheReserveEUR / pufferGesamtEUR) * 100;
+        const reinvestPct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
+        const reservePctText = fmtPercent(reservePct, 1);
+        const reinvestPctText = fmtPercent(reinvestPct, 1);
+
+        const splitText =
+          "Nach Steuern und Fixkosten bleiben dir <strong>" +
+          usd(pufferUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(pufferGesamtEUR) +
+          "</span> als Puffer übrig. Du legst davon " +
+          reservePctText +
+          " % = <strong>" +
+          usd(reserveUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(monatlicheReserveEUR) +
+          "</span> für deine Sicherheitsreserve zur Seite. Der Rest von " +
+          reinvestPctText +
+          " % = <strong>" +
+          usd(reinvestUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(monatlicherReinvestEUR) +
+          "</span> bleibt im Trading-Konto und wird wieder investiert. Für die Steuern legst du zusätzlich <strong>" +
+          usd(steuerUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(taxEUR) +
+          "</span> zurück.";
+
+        splitTextEl.innerHTML = splitText;
+      }
+
+      const simSummaryEl = document.getElementById("sim-summary");
+      if (simSummaryEl) {
+        const reserveUSD = monatlicheReserveEUR * B3;
+        const reinvestUSD = monatlicherReinvestEUR * B3;
+        const reservePct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicheReserveEUR / pufferGesamtEUR) * 100;
+        const reinvestPct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
+
+        if (pufferGesamtEUR === 0) {
+          simSummaryEl.textContent =
+            "Probenrechnung: In diesem Szenario entsteht kein Pufferbetrag, daher wird weder reinvestiert noch eine Sicherheitsreserve aufgebaut.";
+        } else {
+          simSummaryEl.innerHTML =
+            "Probenrechnung: Du reinvestierst <strong>" +
+            fmtPercent(reinvestPct, 1) +
+            " % = " +
+            usd(reinvestUSD) +
+            "</strong> <span class=\"eur-inline\">" +
+            eur(monatlicherReinvestEUR) +
+            "</span> und entnimmst <strong>" +
+            fmtPercent(reservePct, 1) +
+            " % = " +
+            usd(reserveUSD) +
+            "</strong> <span class=\"eur-inline\">" +
+            eur(monatlicheReserveEUR) +
+            "</span> für die kumulierte Sicherheitsreserve.";
+        }
+      }
+
       const gesamtLastEUR = taxEUR + ruecklageEUR;
       const loadRows = [];
       loadRows.push(trMain("Steueranteil", taxEUR * B3, taxEUR));
@@ -482,8 +659,9 @@
           '<td class="label">Monat</td>' +
           '<td class="value">Kapital Beginn</td>' +
           '<td class="value">Brutto-Gewinn</td>' +
-          '<td class="value">Kapital Ende</td>' +
+          '<td class="value">Reinvestiert</td>' +
           '<td class="value">kumulierte Sicherheitsrücklage</td>' +
+          '<td class="value">Kapital nächster Monat</td>' +
         "</tr>"
       );
 
@@ -543,8 +721,10 @@
         }
 
         const capStartUSD = capStartEUR * rateEURtoUSD;
+        const reinvestUSD = step.reinvestEUR * rateEURtoUSD;
         const capEndUSD = capEUR * rateEURtoUSD;
         const brutUSD = step.brutEUR * rateEURtoUSD;
+        const reserveUSD = reserveBucketEUR * rateEURtoUSD;
 
         seriesUSD.push(capEndUSD);
 
@@ -566,15 +746,21 @@
               "</div>" +
             "</td>" +
             '<td class="value">' +
-              usd(capEndUSD) +
+              usd(reinvestUSD) +
               '<div class="eur">' +
-              eur(capEUR) +
+              eur(step.reinvestEUR) +
               "</div>" +
             "</td>" +
             '<td class="value">' +
-              usd(reserveBucketEUR * rateEURtoUSD) +
+              usd(reserveUSD) +
               '<div class="eur">' +
               eur(reserveBucketEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(capEndUSD) +
+              '<div class="eur">' +
+              eur(capEUR) +
               "</div>" +
             "</td>" +
           "</tr>"
@@ -761,13 +947,13 @@
         " " +
         eur(pufferGesamtEUR) +
         " übrig. Auf Basis der aktuellen Einstellung werden davon " +
-        fmt(reserveSplitInput, 1).replace(".", ",") +
+        fmtPercent(reserveSplitInput, 1) +
         " % (" +
         usd(monatlicheReserveEUR * B3) +
         " " +
         eur(monatlicheReserveEUR) +
         ") als Sicherheitsreserve beiseite gelegt und " +
-        fmt(100 - reserveSplitInput, 1).replace(".", ",") +
+        fmtPercent(100 - reserveSplitInput, 1) +
         " % (" +
         usd(monatlicherReinvestEUR * B3) +
         " " +
