@@ -22,6 +22,7 @@
       margin: 0;
       padding: 10px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12pt;
       background: var(--bg);
       color: var(--text-main);
     }
@@ -51,6 +52,27 @@
       border: 1px solid var(--border);
       padding: 12px;
       margin-bottom: 10px;
+    }
+
+    .split-summary {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #152021;
+      border: 1px solid var(--border);
+    }
+
+    .split-summary h3 {
+      margin: 0 0 6px 0;
+      font-size: 0.9rem;
+      color: var(--accent-soft);
+    }
+
+    .split-summary p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
 
     .input-group {
@@ -105,6 +127,12 @@
     .eur {
       font-size: 0.65rem;
       color: var(--text-muted);
+    }
+
+    .eur-inline {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 4px;
     }
 
     .negative {
@@ -216,6 +244,11 @@
     <h2>Ergebnisse (Monat)</h2>
     <table id="tbl-main"><tbody><tr><td class="label">Startkapital</td><td class="value"> 6359,88 $<div class="eur">(5482,65 €)</div></td></tr><tr><td class="label">Brutto-Gewinn</td><td class="value"> 5970,51 $<div class="eur">(5146,99 €)</div></td></tr><tr><td class="label">Steueranteil (26,375 %)</td><td class="value"> 1574,72 $<div class="eur">(1357,52 €)</div></td></tr><tr><td class="label">Netto-Gewinn vor Auszahlung</td><td class="value  highlight"> 4395,79 $<div class="eur">(3789,47 €)</div></td></tr><tr><td class="label">Auszahlung Fixkosten</td><td class="value negative"> -4176,00 $<div class="eur">(3600,00 €)</div></td></tr><tr><td class="label">Rücklagenbeitrag (gesamt)</td><td class="value"> 219,79 $<div class="eur">(189,47 €)</div></td></tr><tr><td class="label">Endkapital</td><td class="value"> 6579,67 $ (ROE: 3,46 %)<div class="eur">(5672,13 €)</div></td></tr></tbody></table>
 
+    <div class="split-summary">
+      <h3>So verteilst du deinen Puffer</h3>
+      <p id="split-text">Die Beträge werden anhand deiner Einstellungen berechnet.</p>
+    </div>
+
     <div class="sec-title">Sicherheitsreserven (Empfehlung)</div>
     <table id="tbl-safety"><tbody><tr><td class="label">Notgroschen (5× Fixkosten)</td><td class="value"> 20880,00 $<div class="eur">(18000,00 €)</div></td></tr><tr><td class="label">Doppeltes Startkapital</td><td class="value"> 12719,76 $<div class="eur">(10965,31 €)</div></td></tr><tr><td class="label">Startkapital + 3× Fixkosten</td><td class="value"> 18887,88 $<div class="eur">(16282,65 €)</div></td></tr></tbody></table>
 
@@ -233,7 +266,21 @@
   <div class="card">
     <h3>Kapitalentwicklung über 12 Monate</h3>
     <canvas id="cap-chart" width="1530" height="180"></canvas>
-    <table id="tbl-sim"><tbody><tr><td class="label">Monat</td><td class="value">Kapital Beginn</td><td class="value">Brutto-Gewinn</td><td class="value">Kapital Ende</td><td class="value">kumulierte Sicherheitsrücklage</td></tr><tr><td class="label">1</td><td class="value">6359,88 $<div class="eur">(5482,65 €)</div></td><td class="value">5970,51 $<div class="eur">(5146,99 €)</div></td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">109,89 $<div class="eur">(94,74 €)</div></td></tr><tr><td class="label">2</td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">6073,68 $<div class="eur">(5235,93 €)</div></td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">257,77 $<div class="eur">(222,21 €)</div></td></tr><tr><td class="label">3</td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">6212,50 $<div class="eur">(5355,60 €)</div></td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">456,74 $<div class="eur">(393,74 €)</div></td></tr><tr><td class="label">4</td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">6399,29 $<div class="eur">(5516,63 €)</div></td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">724,48 $<div class="eur">(624,55 €)</div></td></tr><tr><td class="label">5</td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">6650,64 $<div class="eur">(5733,31 €)</div></td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">1084,75 $<div class="eur">(935,13 €)</div></td></tr><tr><td class="label">6</td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">6988,85 $<div class="eur">(6024,87 €)</div></td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">1569,52 $<div class="eur">(1353,04 €)</div></td></tr><tr><td class="label">7</td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">7443,94 $<div class="eur">(6417,19 €)</div></td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">2221,82 $<div class="eur">(1915,37 €)</div></td></tr><tr><td class="label">8</td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">8056,31 $<div class="eur">(6945,10 €)</div></td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">3099,55 $<div class="eur">(2672,03 €)</div></td></tr><tr><td class="label">9</td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">8880,30 $<div class="eur">(7655,43 €)</div></td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">4280,61 $<div class="eur">(3690,19 €)</div></td></tr><tr><td class="label">10</td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">9989,06 $<div class="eur">(8611,26 €)</div></td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">5869,84 $<div class="eur">(5060,20 €)</div></td></tr><tr><td class="label">11</td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">11480,98 $<div class="eur">(9897,40 €)</div></td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">8008,27 $<div class="eur">(6903,68 €)</div></td></tr><tr><td class="label">12</td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">13488,50 $<div class="eur">(11628,02 €)</div></td><td class="value">17245,61 $<div class="eur">(14866,90 €)</div></td><td class="value">10885,73 $<div class="eur">(9384,25 €)</div></td></tr></tbody></table>
+    <table id="tbl-sim">
+      <tbody>
+        <tr>
+          <td class="label">Monat</td>
+          <td class="value">Kapital Beginn</td>
+          <td class="value">Brutto-Gewinn</td>
+          <td class="value">Reinvestiert</td>
+          <td class="value">kumulierte Sicherheitsrücklage</td>
+          <td class="value">Kapital nächster Monat</td>
+        </tr>
+        <tr>
+          <td class="label" colspan="6">Wird mit deinen Eingaben berechnet …</td>
+        </tr>
+      </tbody>
+    </table>
     <p id="notgroschen-text" class="notgroschen-note">Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.</p>
   </div>
 
@@ -387,6 +434,47 @@
       );
       document.getElementById("tbl-main").innerHTML = mainRows.join("");
 
+      const splitTextEl = document.getElementById("split-text");
+      if (splitTextEl) {
+        const pufferUSD = pufferGesamtEUR * B3;
+        const reserveUSD = monatlicheReserveEUR * B3;
+        const reinvestUSD = monatlicherReinvestEUR * B3;
+        const steuerUSD = taxEUR * B3;
+        const reservePct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicheReserveEUR / pufferGesamtEUR) * 100;
+        const reinvestPct =
+          pufferGesamtEUR === 0
+            ? 0
+            : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
+
+        const splitText =
+          "Nach Steuern und Fixkosten bleiben dir <strong>" +
+          usd(pufferUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(pufferGesamtEUR) +
+          "</span> als Puffer übrig. Du legst davon " +
+          fmt(reservePct, 1).replace(".", ",") +
+          " % = <strong>" +
+          usd(reserveUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(monatlicheReserveEUR) +
+          "</span> für deine Sicherheitsreserve zur Seite. Der Rest von " +
+          fmt(reinvestPct, 1).replace(".", ",") +
+          " % = <strong>" +
+          usd(reinvestUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(monatlicherReinvestEUR) +
+          "</span> bleibt im Trading-Konto und wird wieder investiert. Für die Steuern legst du zusätzlich <strong>" +
+          usd(steuerUSD) +
+          "</strong> <span class=\"eur-inline\">" +
+          eur(taxEUR) +
+          "</span> zurück.";
+
+        splitTextEl.innerHTML = splitText;
+      }
+
       const gesamtLastEUR = taxEUR + ruecklageEUR;
       const loadRows = [];
       loadRows.push(trMain("Steueranteil", taxEUR * B3, taxEUR));
@@ -409,9 +497,38 @@
       safetyRows.push(
         trMain("Startkapital + 3× Fixkosten", safety3USD, safety3EUR)
       );
-      document.getElementById("tbl-safety").innerHTML = safetyRows.join("");
 
-      runSimulation(startEUR, B4, B3, perf, B5, notgEUR);
+      const simResult = runSimulation(startEUR, B4, B3, perf, B5, notgEUR);
+
+      const notgHitRow = (() => {
+        if (!simResult) return "";
+        if (simResult.notgReached) {
+          const suffix =
+            simResult.hitMonth > 12
+              ? " (berechnet über zusätzliche Monate)"
+              : "";
+          return (
+            '<tr><td class="label">Monate bis Notgroschen</td><td class="value">' +
+            simResult.hitMonth +
+            suffix +
+            "</td></tr>"
+          );
+        }
+        if (simResult.reason === "stagnation") {
+          return (
+            '<tr><td class="label">Monate bis Notgroschen</td><td class="value">nicht erreichbar (keine überschüssigen Mittel)</td></tr>'
+          );
+        }
+        return (
+          '<tr><td class="label">Monate bis Notgroschen</td><td class="value">nicht innerhalb von ' +
+          simResult.maxMonths +
+          " Monaten</td></tr>"
+        );
+      })();
+      if (notgHitRow) {
+        safetyRows.push(notgHitRow);
+      }
+      document.getElementById("tbl-safety").innerHTML = safetyRows.join("");
 
       buildExplanation({
         mode,
@@ -453,14 +570,20 @@
           '<td class="label">Monat</td>' +
           '<td class="value">Kapital Beginn</td>' +
           '<td class="value">Brutto-Gewinn</td>' +
-          '<td class="value">Kapital Ende</td>' +
+          '<td class="value">Reinvestiert</td>' +
           '<td class="value">kumulierte Sicherheitsrücklage</td>' +
+          '<td class="value">Kapital nächster Monat</td>' +
         "</tr>"
       );
 
+      const displayMonths = 12;
+      const maxMonths = 600;
+      const stagnationThreshold = 24;
       let capEUR = startEUR;
       let reserveBucketEUR = 0;
       let hitMonth = -1;
+      let stagnationCounter = 0;
+      let notgReason = "horizon";
       const seriesUSD = [];
 
       const reserveSplitInput = parseFloat(
@@ -468,9 +591,8 @@
       );
       const reserveSplit = reserveSplitInput / 100;
 
-      for (let m = 1; m <= 12; m++) {
-        const capStartEUR = capEUR;
-        const brutEUR = capStartEUR * perf;
+      function simulateStep(currentCapEUR) {
+        const brutEUR = currentCapEUR * perf;
         const taxEUR = brutEUR * taxRate;
         const netEUR = brutEUR - taxEUR;
 
@@ -479,17 +601,41 @@
 
         const reserveAddEUR = leftoverEUR * reserveSplit;
         const reinvestEUR = leftoverEUR - reserveAddEUR;
+        const nextCapEUR = currentCapEUR + reinvestEUR;
 
-        reserveBucketEUR += reserveAddEUR;
-        capEUR = capStartEUR + reinvestEUR;
+        return {
+          brutEUR,
+          taxEUR,
+          netEUR,
+          reserveAddEUR,
+          reinvestEUR,
+          nextCapEUR,
+        };
+      }
+
+      for (let m = 1; m <= displayMonths; m++) {
+        const capStartEUR = capEUR;
+        const step = simulateStep(capStartEUR);
+
+        reserveBucketEUR += step.reserveAddEUR;
+        capEUR = step.nextCapEUR;
+
+        if (step.reserveAddEUR === 0 && step.reinvestEUR === 0) {
+          stagnationCounter += 1;
+        } else {
+          stagnationCounter = 0;
+        }
 
         if (hitMonth === -1 && reserveBucketEUR >= notgEUR) {
           hitMonth = m;
+          notgReason = "hit";
         }
 
         const capStartUSD = capStartEUR * rateEURtoUSD;
+        const reinvestUSD = step.reinvestEUR * rateEURtoUSD;
         const capEndUSD = capEUR * rateEURtoUSD;
-        const brutUSD = brutEUR * rateEURtoUSD;
+        const brutUSD = step.brutEUR * rateEURtoUSD;
+        const reserveUSD = reserveBucketEUR * rateEURtoUSD;
 
         seriesUSD.push(capEndUSD);
 
@@ -507,7 +653,19 @@
             '<td class="value">' +
               usd(brutUSD) +
               '<div class="eur">' +
-              eur(brutEUR) +
+              eur(step.brutEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(reinvestUSD) +
+              '<div class="eur">' +
+              eur(step.reinvestEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(reserveUSD) +
+              '<div class="eur">' +
+              eur(reserveBucketEUR) +
               "</div>" +
             "</td>" +
             '<td class="value">' +
@@ -516,28 +674,69 @@
               eur(capEUR) +
               "</div>" +
             "</td>" +
-            '<td class="value">' +
-              usd(reserveBucketEUR * rateEURtoUSD) +
-              '<div class="eur">' +
-              eur(reserveBucketEUR) +
-              "</div>" +
-            "</td>" +
           "</tr>"
         );
       }
 
-      tbl.innerHTML = rows.join("");
       if (hitMonth === -1) {
-        notgText.textContent =
-          "Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
+        for (let m = displayMonths + 1; m <= maxMonths; m++) {
+          const step = simulateStep(capEUR);
+
+          reserveBucketEUR += step.reserveAddEUR;
+          capEUR = step.nextCapEUR;
+
+          if (step.reserveAddEUR === 0 && step.reinvestEUR === 0) {
+            stagnationCounter += 1;
+          } else {
+            stagnationCounter = 0;
+          }
+
+          if (reserveBucketEUR >= notgEUR) {
+            hitMonth = m;
+            notgReason = "hit";
+            break;
+          }
+
+          if (stagnationCounter >= stagnationThreshold) {
+            notgReason = "stagnation";
+            break;
+          }
+        }
+      }
+
+      tbl.innerHTML = rows.join("");
+
+      if (hitMonth === -1) {
+        if (stagnationCounter >= stagnationThreshold) {
+          notgReason = "stagnation";
+          notgText.textContent =
+            "Notgroschen wird mit diesen Parametern nicht erreicht, da kein überschüssiger Betrag für die Sicherheitsrücklage entsteht.";
+        } else {
+          notgReason = "horizon";
+          notgText.textContent =
+            "Notgroschen wird innerhalb von " +
+            maxMonths +
+            " Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
+        }
       } else {
         notgText.textContent =
           "Notgroschen wird mit diesen Parametern im Monat " +
           hitMonth +
-          " durch die entnommene Sicherheitsrücklage erreicht.";
+          " durch die entnommene Sicherheitsrücklage erreicht." +
+          (hitMonth > displayMonths
+            ? " (Berechnung berücksichtigt zusätzliche Monate außerhalb der Tabelle.)"
+            : "");
       }
 
-      drawChart(seriesUSD, hitMonth - 1);
+      const chartHitIndex = hitMonth > 0 && hitMonth <= displayMonths ? hitMonth - 1 : -1;
+      drawChart(seriesUSD, chartHitIndex);
+
+      return {
+        hitMonth,
+        notgReached: hitMonth !== -1,
+        reason: notgReason,
+        maxMonths,
+      };
     }
 
     function drawChart(series, hitIndex) {
