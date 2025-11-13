@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bedarfsrechner – Finanzielle Freiheit</title>
+  <style>
+    :root {
+      --bg: #0d1314;
+      --card-bg: #11191a;
+      --border: #1f2c2e;
+      --accent: #3fe6c4;
+      --accent-soft: #2aa59f;
+      --text-main: #eef4f4;
+      --text-muted: #9ecac3;
+      --neg: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      margin: 0 0 10px 0;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin: 0 0 8px 0;
+      color: var(--accent);
+    }
+
+    h3 {
+      font-size: 0.95rem;
+      margin: 0 0 6px 0;
+      color: var(--accent-soft);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .input-group {
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--accent-soft);
+      background: #0b1011;
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+
+    td {
+      padding: 3px 2px;
+      font-size: 0.78rem;
+      vertical-align: top;
+    }
+
+    td.label {
+      text-align: left;
+      color: var(--text-muted);
+    }
+
+    td.value {
+      text-align: right;
+    }
+
+    .eur {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .negative { color: var(--neg); }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .big-start {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .accordion {
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #152021;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .accordion:hover { background: #182427; }
+
+    .panel {
+      display: none;
+      margin-top: 5px;
+      padding: 8px;
+      background: #0e1516;
+      border-radius: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      height: 180px;
+      display: block;
+      background: #0b1011;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 6px;
+    }
+
+    .notgroschen-note {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .sec-title {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      color: var(--accent-soft);
+    }
+
+    .small { font-size: 0.72rem; }
+  </style>
+</head>
+<body>
+  <h1>Bedarfsrechner – Selbstständigkeit & finanzielle Sicherheit</h1>
+
+  <div class="card">
+    <h2>Eingaben</h2>
+
+    <div class="input-group">
+      <label for="reserveSplit">Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird (%)</label>
+      <input id="reserveSplit" type="number" value="50" step="1" />
+    </div>
+
+    <div class="input-group">
+      <label for="notgDisplay">Anzeigeformat Notgroschen</label>
+      <select id="notgDisplay">
+        <option value="ym">Jahre + Monate</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="b2">Leistung pro Woche (%)</label>
+      <input id="b2" type="number" value="18" step="0.1" />
+    </div>
+
+    <div class="input-group">
+      <label for="b3">Wechselkurs EUR → USD</label>
+      <input id="b3" type="number" value="1.16" step="0.0001" />
+    </div>
+
+    <div class="input-group">
+      <label for="b4">Monatliche Fixkosten (EUR)</label>
+      <input id="b4" type="number" value="3600" step="1" />
+    </div>
+
+    <div class="input-group">
+      <label for="b5">Steuersatz auf Gewinne (%)</label>
+      <input id="b5" type="number" value="26.375" step="0.001" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ergebnisse (Monat)</h2>
+    <table id="tbl-main"></table>
+
+    <div class="sec-title">Sicherheitsreserven (Empfehlung)</div>
+    <table id="tbl-safety"></table>
+
+    <div class="accordion" id="acc-ges">▸ Gesamtlast & Aufteilung</div>
+    <div class="panel" id="panel-ges">
+      <table id="tbl-load"></table>
+    </div>
+
+    <div class="accordion" id="acc-exp">▸ Erklärung & Einordnung</div>
+    <div class="panel" id="panel-exp">
+      <div id="exp-text" class="small"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kapitalentwicklung über 12 Monate</h3>
+    <canvas id="cap-chart"></canvas>
+    <table id="tbl-sim"></table>
+    <p id="notgroschen-text" class="notgroschen-note"></p>
+  </div>
+
+<script>
+  function fmt(n, digits = 2) {
+    if (!isFinite(n)) return "-";
+    return n.toFixed(digits).replace(".", ",");
+  }
+
+  function usd(v) {
+    return fmt(v) + " $";
+  }
+
+  function eur(v) {
+    return "(" + fmt(v) + " €)";
+  }
+
+  function togglePanel(id, accEl) {
+    const panel = document.getElementById(id);
+    const open = panel.style.display === "block";
+    panel.style.display = open ? "none" : "block";
+    if (accEl) accEl.textContent = (open ? "▾" : "▸") + accEl.textContent.slice(1);
+  }
+
+  // Robust number parser
+  function getNum(id) {
+    const el = document.getElementById(id);
+    if (!el) return NaN;
+    const v = parseFloat(el.value);
+    return isFinite(v) ? v : NaN;
+  }
+
+  function trMain(
+    label,
+    usdVal,
+    eurVal,
+    highlight = false,
+    negative = false,
+    extra = "",
+    isStart = false
+  ) {
+    const clsVal = [
+      "value",
+      negative ? "negative" : "",
+      highlight ? "highlight" : "",
+      isStart ? "big-start" : ""
+    ]
+      .join(" ")
+      .trim();
+
+    return (
+      "<tr>" +
+      '<td class="label">' +
+      label +
+      "</td>" +
+      '<td class="' +
+      clsVal +
+      '">" +
+      usd(usdVal) +
+      (extra || "") +
+      '<div class="eur">' +
+      eur(eurVal) +
+      "</div></td></tr>"
+    );
+  }
+
+  function recalc() {
+    const mode = document.getElementById("mode").value;
+    const pufInput = getNum("puf");
+    const reserveSplitInput = getNum("reserveSplit");
+    const B2 = getNum("b2") / 100;
+    const B3 = getNum("b3");
+    const B4 = getNum("b4");
+    const B5 = getNum("b5") / 100;
+
+    const lblPuf = document.getElementById("lbl-puf");
+    if (mode === "puf") {
+      lblPuf.textContent = "Rücklagen-Prozent (vom Netto-Gewinn)";
+    } else {
+      lblPuf.textContent = "ROE-Ziel auf das Kapital (Monat, in %)";
+    }
+
+    const perf = Math.pow(1 + B2, 4) - 1;
+
+    let startEUR = 0;
+    let netBeforeOutEUR = 0;
+    let ruecklageEUR = 0;
+
+    if (perf <= 0 || B3 <= 0 || B4 <= 0) {
+      document.getElementById("tbl-main").innerHTML =
+        "<tr><td>Bitte Eingaben prüfen.</td></tr>";
+      document.getElementById("tbl-load").innerHTML = "";
+      document.getElementById("tbl-safety").innerHTML = "";
+      document.getElementById("tbl-sim").innerHTML = "";
+      document.getElementById("notgroschen-text").textContent = "";
+      document.getElementById("exp-text").textContent = "";
+      drawChart([]);
+      return;
+    }
+
+    if (mode === "puf") {
+      // Rücklagen-Prozent vom Netto-Gewinn
+      const p = pufInput / 100;
+      const denom = (1 - p) * perf * (1 - B5);
+      if (denom <= 0) {
+        document.getElementById("tbl-main").innerHTML =
+          "<tr><td>Rücklagen-Prozent zu hoch für diese Performance.</td></tr>";
+        return;
+      }
+      startEUR = B4 / denom;
+      netBeforeOutEUR = startEUR * perf * (1 - B5);
+      ruecklageEUR = netBeforeOutEUR - B4;
+    } else {
+      // ROE-Ziel auf das Kapital
+      const roe = pufInput / 100;
+      const denom = perf * (1 - B5) - roe;
+      if (denom <= 0) {
+        document.getElementById("tbl-main").innerHTML =
+          "<tr><td>ROE-Ziel zu hoch für diese Performance.</td></tr>";
+        return;
+      }
+      startEUR = B4 / denom;
+      netBeforeOutEUR = startEUR * perf * (1 - B5);
+      ruecklageEUR = roe * startEUR;
+    }
+
+    const brutEUR = startEUR * perf;
+    const taxEUR = brutEUR * B5;
+    const netEUR = brutEUR - taxEUR;
+
+    const payoutEUR = B4;
+    const payoutUSD = -payoutEUR * B3;
+    const ruecklageUSD = ruecklageEUR * B3;
+
+    const startUSD = startEUR * B3;
+    const endUSD = startUSD + ruecklageUSD;
+    const endEUR = endUSD / B3;
+    const roeReal = (endUSD - startUSD) / startUSD;
+
+    const pufferGesamtEUR = ruecklageEUR;
+    const reserveRatio = reserveSplitInput / 100;
+    const monatlicheReserveEUR = pufferGesamtEUR * reserveRatio;
+    const monatlicherReinvestEUR = pufferGesamtEUR - monatlicheReserveEUR;
+
+    // Haupt-Ergebnistabelle
+    const mainRows = [];
+    mainRows.push(
+      trMain("Startkapital", startUSD, startEUR, false, false, "", true)
+    );
+    mainRows.push(trMain("Brutto-Gewinn", brutEUR * B3, brutEUR));
+    mainRows.push(
+      trMain(
+        "Steueranteil (" + fmt(B5 * 100, 3) + " %)",
+        taxEUR * B3,
+        taxEUR
+      )
+    );
+    mainRows.push(
+      trMain("Netto-Gewinn vor Auszahlung", netEUR * B3, netEUR, true)
+    );
+    mainRows.push(
+      trMain("Auszahlung Fixkosten", payoutUSD, payoutEUR, false, true)
+    );
+    mainRows.push(
+      trMain("Rücklagenbeitrag (gesamt)", ruecklageUSD, ruecklageEUR)
+    );
+    mainRows.push(
+      trMain(
+        "Endkapital",
+        endUSD,
+        endEUR,
+        false,
+        false,
+        " (ROE: " + fmt(roeReal * 100, 2) + " %)"
+      )
+    );
+    document.getElementById("tbl-main").innerHTML = mainRows.join("");
+
+    // Gesamtlast-Tabelle
+    const gesamtLastEUR = taxEUR + ruecklageEUR;
+    const loadRows = [];
+    loadRows.push(trMain("Steueranteil", taxEUR * B3, taxEUR));
+    loadRows.push(trMain("Rücklagenbeitrag (gesamt)", ruecklageUSD, ruecklageEUR));
+    loadRows.push(
+      trMain(
+        "Gesamtlast (Steuern + Rücklagen)",
+        gesamtLastEUR * B3,
+        gesamtLastEUR
+      )
+    );
+    document.getElementById("tbl-load").innerHTML = loadRows.join("");
+
+    // Sicherheitsziele
+    const notgEUR = 5 * B4;
+    const notgUSD = notgEUR * B3;
+    const safety2EUR = 2 * startEUR;
+    const safety2USD = safety2EUR * B3;
+    const safety3EUR = startEUR + 3 * B4;
+    const safety3USD = safety3EUR * B3;
+
+    const safetyRows = [];
+    safetyRows.push(trMain("Notgroschen (5× Fixkosten)", notgUSD, notgEUR));
+    safetyRows.push(trMain("Doppeltes Startkapital", safety2USD, safety2EUR));
+    safetyRows.push(
+      trMain("Startkapital + 3× Fixkosten", safety3USD, safety3EUR)
+    );
+    document.getElementById("tbl-safety").innerHTML = safetyRows.join("");
+
+    // Simulation + Notgroschen
+    runSimulation(startEUR, B4, B3, perf, B5, notgEUR);
+
+    // Erklärungstext
+    buildExplanation({
+      mode,
+      B2,
+      perf,
+      B3,
+      B4,
+      B5,
+      startEUR,
+      startUSD,
+      brutEUR,
+      taxEUR,
+      netEUR,
+      ruecklageEUR,
+      endEUR,
+      endUSD,
+      notgEUR,
+      notgUSD,
+      safety2EUR,
+      safety2USD,
+      safety3EUR,
+      safety3USD,
+      roeReal,
+      reserveSplitInput,
+      monatlicheReserveEUR,
+      monatlicherReinvestEUR,
+      pufferGesamtEUR
+    });
+  }
+
+  function runSimulation(startEUR, fixEUR, rateEURtoUSD, perf, taxRate, notgEUR) {
+    const tbl = document.getElementById("tbl-sim");
+    const notgText = document.getElementById("notgroschen-text");
+    const rows = [];
+
+    rows.push(
+      "<tr>" +
+        '<td class="label">Monat</td>' +
+        '<td class="value">Kapital Beginn</td>' +
+        '<td class="value">Brutto-Gewinn</td>' +
+        '<td class="value">Kapital Ende</td>' +
+        '<td class="value">kumulierte Sicherheitsrücklage</td>' +
+      "</tr>"
+    );
+
+    let capEUR = startEUR;
+    let reserveBucketEUR = 0;
+    const seriesUSD = [];
+
+    const reserveSplitInput = parseFloat(
+      document.getElementById("reserveSplit").value || "0"
+    );
+    const reserveSplit = reserveSplitInput / 100;
+
+    const displayMonths = 12;
+
+    // 12-Monats-Tabelle + Chart-Daten
+    for (let m = 1; m <= displayMonths; m++) {
+      const capStartEUR = capEUR;
+      const brutEUR = capStartEUR * perf;
+      const taxEUR = brutEUR * taxRate;
+      const netEUR = brutEUR - taxEUR;
+
+      let leftoverEUR = netEUR - fixEUR;
+      if (leftoverEUR < 0) leftoverEUR = 0;
+
+      const reserveAddEUR = leftoverEUR * reserveSplit;
+      const reinvestEUR = leftoverEUR - reserveAddEUR;
+
+      reserveBucketEUR += reserveAddEUR;
+      capEUR = capStartEUR + reinvestEUR;
+
+      const capStartUSD = capStartEUR * rateEURtoUSD;
+      const capEndUSD = capEUR * rateEURtoUSD;
+      const brutUSD = brutEUR * rateEURtoUSD;
+
+      seriesUSD.push(capEndUSD);
+
+      let reserveCellExtra = "";
+      if (m === displayMonths && notgEUR > 0) {
+        const ratio = (reserveBucketEUR / notgEUR) * 100;
+        reserveCellExtra =
+          '<span class="eur">' +
+          fmt(ratio, 1) +
+          " % des Notgroschens</span>";
+      }
+
+      rows.push(
+        "<tr>" +
+          '<td class="label">' +
+          m +
+          "</td>" +
+          '<td class="value">' +
+            usd(capStartUSD) +
+            '<div class="eur">' +
+            eur(capStartEUR) +
+            "</div>" +
+          "</td>" +
+          '<td class="value">' +
+            usd(brutUSD) +
+            '<div class="eur">' +
+            eur(brutEUR) +
+            "</div>" +
+          "</td>" +
+          '<td class="value">' +
+            usd(capEndUSD) +
+            '<div class="eur">' +
+            eur(capEUR) +
+            "</div>" +
+          "</td>" +
+          '<td class="value">' +
+            usd(reserveBucketEUR * rateEURtoUSD) +
+            '<div class="eur">' +
+            eur(reserveBucketEUR) +
+            "</div>" +
+            reserveCellExtra +
+          "</td>" +
+        "</tr>"
+      );
+    }
+
+    tbl.innerHTML = rows.join("");
+
+    // Langfristige Notgroschen-Simulation (nur für Text)
+    capEUR = startEUR;
+    reserveBucketEUR = 0;
+    const maxMonths = 360;
+    let hitMonthGlobal = -1;
+
+    for (let m = 1; m <= maxMonths; m++) {
+      const capStartEUR = capEUR;
+      const brutEUR = capStartEUR * perf;
+      const taxEUR = brutEUR * taxRate;
+      const netEUR = brutEUR - taxEUR;
+
+      let leftoverEUR = netEUR - fixEUR;
+      if (leftoverEUR < 0) leftoverEUR = 0;
+
+      const reserveAddEUR = leftoverEUR * reserveSplit;
+      const reinvestEUR = leftoverEUR - reserveAddEUR;
+
+      reserveBucketEUR += reserveAddEUR;
+      capEUR = capStartEUR + reinvestEUR;
+
+      if (reserveBucketEUR >= notgEUR) {
+        hitMonthGlobal = m;
+        break;
+      }
+    }
+
+    if (hitMonthGlobal === -1) {
+      notgText.textContent =
+        "Notgroschen wird mit diesen Parametern innerhalb von 360 Monaten nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
+    } else {
+      const fmtMode = document.getElementById("notgDisplay").value;
+      let msg = "Notgroschen wird mit diesen Parametern nach " + hitMonthGlobal + " Monaten erreicht.";
+
+      if (fmtMode === "ym") {
+        const years = Math.floor(hitMonthGlobal / 12);
+        const monthsRem = hitMonthGlobal % 12;
+        msg += " (≈ ";
+        if (years > 0) msg += years + (years === 1 ? " Jahr" : " Jahren");
+        if (monthsRem > 0) msg += (years > 0 ? " und " : "") + monthsRem + (monthsRem === 1 ? " Monat" : " Monaten");
+        msg += ")";
+      }
+
+      notgText.textContent = msg;
+    }
+    }
+
+    let markerIndex = -1;
+    if (hitMonthGlobal !== -1 && hitMonthGlobal <= displayMonths) {
+      markerIndex = hitMonthGlobal - 1;
+    }
+
+    drawChart(seriesUSD, markerIndex);
+  }
+
+  function drawChart(series, hitIndex) {
+    const canvas = document.getElementById("cap-chart");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!series || series.length === 0) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const pad = 18;
+
+    const max = Math.max.apply(null, series);
+    const min = Math.min.apply(null, series);
+    const range = max - min || 1;
+
+    ctx.strokeStyle = "#3fe6c4";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+
+    series.forEach((v, i) => {
+      const x = pad + (i * (w - 2 * pad)) / (series.length - 1);
+      const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    if (hitIndex >= 0 && hitIndex < series.length) {
+      const v = series[hitIndex];
+      const x = pad + (hitIndex * (w - 2 * pad)) / (series.length - 1);
+      const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+      ctx.fillStyle = "#ffcc66";
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function buildExplanation(data) {
+    const {
+      mode,
+      B2,
+      perf,
+      B3,
+      B4,
+      B5,
+      startEUR,
+      startUSD,
+      brutEUR,
+      taxEUR,
+      netEUR,
+      ruecklageEUR,
+      endEUR,
+      endUSD,
+      notgEUR,
+      notgUSD,
+      safety2EUR,
+      safety2USD,
+      safety3EUR,
+      safety3USD,
+      roeReal,
+      reserveSplitInput,
+      monatlicheReserveEUR,
+      monatlicherReinvestEUR,
+      pufferGesamtEUR
+    } = data;
+
+    const perfMonthPct = perf * 100;
+    const perfWeekPct = B2 * 100;
+
+    const steuerText =
+      fmt(B5 * 100, 3) +
+      " % (bestehend aus ca. 25 % Kapitalertragssteuer und 5,5 % Solidaritätszuschlag, ohne Kirchensteuer)";
+
+    const modeText =
+      mode === "puf"
+        ? "In diesem Modus legst du fest, wie viel Prozent deines monatlichen Netto-Gewinns (nach Steuern) als Rücklage im System bleiben sollen. Der Rechner skaliert das Startkapital so, dass deine Fixkosten vollständig gedeckt werden und zusätzlich der gewünschte Rücklagenbetrag übrig bleibt."
+        : "In diesem Modus gibst du ein ROE-Ziel pro Monat an. Der Rechner bestimmt dann, wie groß dein Startkapital sein muss, damit nach Steuern und Fixkosten genau dieser zusätzliche Kapitalzuwachs als Rücklage aufgebaut werden kann.";
+
+    const s1 =
+      "Mit monatlichen Fixkosten von " +
+      fmt(B4, 2) +
+      " € (" +
+      usd(B4 * B3) +
+      ") und einem Steuersatz von " +
+      steuerText +
+      " arbeitest du mit einer Wochenperformance von " +
+      fmt(perfWeekPct, 2) +
+      " % – das entspricht ungefähr " +
+      fmt(perfMonthPct, 1) +
+      " % pro Monat.";
+
+    const s2 =
+      "Um diese Struktur zu tragen, ergibt sich daraus ein benötigtes Startkapital von " +
+      usd(startUSD) +
+      " " +
+      eur(startEUR) +
+      ". In diesem Szenario entsteht ein monatlicher Brutto-Gewinn von " +
+      usd(brutEUR * B3) +
+      " " +
+      eur(brutEUR) +
+      ", wovon " +
+      usd(taxEUR * B3) +
+      " " +
+      eur(taxEUR) +
+      " als Steuern zurückgelegt werden. Der verbleibende Netto-Gewinn vor Auszahlung beträgt " +
+      usd(netEUR * B3) +
+      " " +
+      eur(netEUR) +
+      ".";
+
+    const s3 =
+      "Nach Abzug deiner Fixkosten von " +
+      fmt(B4, 2) +
+      " € bleibt ein theoretischer Rücklagen- bzw. Pufferbetrag von " +
+      usd(pufferGesamtEUR * B3) +
+      " " +
+      eur(pufferGesamtEUR) +
+      " übrig. Auf Basis der aktuellen Einstellung werden davon " +
+      fmt(reserveSplitInput, 1) +
+      " % (" +
+      usd(monatlicheReserveEUR * B3) +
+      " " +
+      eur(monatlicheReserveEUR) +
+      ") als Sicherheitsreserve beiseite gelegt und " +
+      fmt(100 - reserveSplitInput, 1) +
+      " % (" +
+      usd(monatlicherReinvestEUR * B3) +
+      " " +
+      eur(monatlicherReinvestEUR) +
+      ") im System reinvestiert.";
+
+    const s4 =
+      "Die Sicherheitsrücklage wird außerhalb des Trading-Kapitals betrachtet und dient dazu, einen Notgroschen aufzubauen. In der Simulation wird ermittelt, in welchem Monat die kumulierte Sicherheitsrücklage mindestens fünf Monatsfixkosten (" +
+      usd(notgUSD) +
+      " " +
+      eur(notgEUR) +
+      ") erreicht. Das ist der Zeitpunkt, an dem du theoretisch mehrere Monate ohne laufende Gewinne überbrücken könntest.";
+
+    const s5 =
+      "Als zusätzliche Orientierung können ein doppeltes Startkapital (" +
+      usd(safety2USD) +
+      " " +
+      eur(safety2EUR) +
+      ") oder die Kombination aus Startkapital plus drei Monats-Fixkosten (" +
+      usd(safety3USD) +
+      " " +
+      eur(safety3EUR) +
+      ") als Zielmarken für dein Sicherheitsniveau dienen.";
+
+    const s6 =
+      "Steuern werden zwar formal nur einmal pro Jahr festgesetzt, aber ohne laufende Steuerrücklagen besteht das Risiko, dass am Jahresende hohe Buchgewinne aufgelaufen sind, während das verfügbare Kapital durch nachfolgende Verluste bereits wieder geschrumpft ist. Deshalb ist es sinnvoll, Steuerrücklagen regelmäßig – zum Beispiel monatlich oder quartalsweise – zu bilden und das Geld bewusst beiseite zu legen.";
+
+    const s7 =
+      "Ein höherer Sicherheitsrücklagen-Anteil beschleunigt den Aufbau deines Notgroschens, bremst aber das Wachstum des Trading-Kapitals. Ein niedrigerer Anteil verstärkt den Zinseszinseffekt, verschiebt dafür den Zeitpunkt, an dem dein Notgroschen vollständig gefüllt ist, weiter nach hinten. Mit der Kombination aus Puffer-Prozent und Aufteilungsquote kannst du dieses Verhältnis bewusst steuern.";
+
+    // Beispielrechnung mit 1000 USD Brutto-Profit
+    const brutUSDExample = 1000;
+    const brutEURExample = brutUSDExample / B3;
+    const taxUSDExample = brutUSDExample * B5;
+    const taxEURExample = taxUSDExample / B3;
+    const netUSDExample = brutUSDExample - taxUSDExample;
+    const netEURExample = netUSDExample / B3;
+    const reserveUSDExample = netUSDExample * (reserveSplitInput / 100);
+    const reserveEURExample = reserveUSDExample / B3;
+    const reinvestUSDExample = netUSDExample - reserveUSDExample;
+    const reinvestEURExample = reinvestUSDExample / B3;
+
+    const s8 =
+      "Beispiel: Angenommen du machst " +
+      fmt(brutUSDExample, 2) +
+      " $ Brutto-Profit in einem Monat. Bei deinem Steuersatz von " +
+      fmt(B5 * 100, 3) +
+      " % legst du davon " +
+      usd(taxUSDExample) +
+      " " +
+      eur(taxEURExample) +
+      " als Steuerrücklage beiseite. Der verbleibende Netto-Profit beträgt " +
+      usd(netUSDExample) +
+      " " +
+      eur(netEURExample) +
+      ". Nach deiner aktuellen Aufteilungsquote von " +
+      fmt(reserveSplitInput, 1) +
+      " % fließen " +
+      usd(reserveUSDExample) +
+      " " +
+      eur(reserveEURExample) +
+      " in die Sicherheitsreserve, während " +
+      usd(reinvestUSDExample) +
+      " " +
+      eur(reinvestEURExample) +
+      " als zusätzliches Kapital in den nächsten Monat reinvestiert werden.";
+
+    const expText =
+      "<p>" +
+      modeText +
+      "</p>" +
+      "<p>" +
+      s1 +
+      "</p>" +
+      "<p>" +
+      s2 +
+      "</p>" +
+      "<p>" +
+      s3 +
+      "</p>" +
+      "<p>" +
+      s4 +
+      "</p>" +
+      "<p>" +
+      s5 +
+      "</p>" +
+      "<p>" +
+      s6 +
+      "</p>" +
+      "<p>" +
+      s7 +
+      "</p>" +
+      "<p>" +
+      s8 +
+      "</p>";
+
+    document.getElementById("exp-text").innerHTML = expText;
+  }
+
+  // Event-Handler registrieren und Initialberechnung
+  document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("cap-chart");
+    if (canvas) {
+      canvas.width = canvas.clientWidth;
+      canvas.height = 180;
+    }
+
+    const modeEl = document.getElementById("mode");
+    const pufEl = document.getElementById("puf");
+    const reserveSplitEl = document.getElementById("reserveSplit");
+    const b2El = document.getElementById("b2");
+    const b3El = document.getElementById("b3");
+    const b4El = document.getElementById("b4");
+    const b5El = document.getElementById("b5");
+
+    if (modeEl) modeEl.addEventListener("change", recalc);
+    if (pufEl) pufEl.addEventListener("input", recalc);
+    if (reserveSplitEl) reserveSplitEl.addEventListener("input", recalc);
+    if (b2El) b2El.addEventListener("input", recalc);
+    if (b3El) b3El.addEventListener("input", recalc);
+    if (b4El) b4El.addEventListener("input", recalc);
+    if (b5El) b5El.addEventListener("input", recalc);
+
+    const accGes = document.getElementById("acc-ges");
+    if (accGes) {
+      accGes.addEventListener("click", function () {
+        togglePanel("panel-ges", this);
+      });
+    }
+
+    const accExp = document.getElementById("acc-exp");
+    if (accExp) {
+      accExp.addEventListener("click", function () {
+        togglePanel("panel-exp", this);
+      });
+    }
+
+    recalc();
+  });
+</script>
+</body>
+</html>
