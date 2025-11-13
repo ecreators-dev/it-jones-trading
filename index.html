@@ -1,0 +1,756 @@
+<html lang="de"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bedarfsrechner – Finanzielle Freiheit</title>
+  <style>
+    :root {
+      --bg: #0d1314;
+      --card-bg: #11191a;
+      --border: #1f2c2e;
+      --accent: #3fe6c4;
+      --accent-soft: #2aa59f;
+      --text-main: #eef4f4;
+      --text-muted: #9ecac3;
+      --neg: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      margin: 0 0 10px 0;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin: 0 0 8px 0;
+      color: var(--accent);
+    }
+
+    h3 {
+      font-size: 0.95rem;
+      margin: 0 0 6px 0;
+      color: var(--accent-soft);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .input-group {
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text-muted);
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--accent-soft);
+      background: #0b1011;
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+
+    td {
+      padding: 3px 2px;
+      font-size: 0.78rem;
+      vertical-align: top;
+    }
+
+    td.label {
+      text-align: left;
+      color: var(--text-muted);
+    }
+
+    td.value {
+      text-align: right;
+    }
+
+    .eur {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .negative {
+      color: var(--neg);
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .accordion {
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #152021;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .accordion:hover {
+      background: #182427;
+    }
+
+    .panel {
+      display: none;
+      margin-top: 5px;
+      padding: 8px;
+      background: #0e1516;
+      border-radius: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      height: 180px;
+      display: block;
+      background: #0b1011;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 6px;
+    }
+
+    .notgroschen-note {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .sec-title {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      color: var(--accent-soft);
+    }
+
+    .small {
+      font-size: 0.72rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bedarfsrechner – Selbstständigkeit &amp; finanzielle Sicherheit</h1>
+
+  <div class="card">
+    <h2>Eingaben</h2>
+
+    <div class="input-group">
+      <label for="mode">Rücklagen-Modus</label>
+      <select id="mode">
+        <option value="puf">Rücklagen als % vom Netto-Gewinn (Monat)</option>
+        <option value="roe">ROE-Ziel in % auf das Kapital (Monat)</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label id="lbl-puf" for="puf">Rücklagen-Prozent (vom Netto-Gewinn)</label>
+      <input id="puf" type="number" value="5" step="0.1">
+    </div>
+
+    <div class="input-group">
+      <label for="reserveSplit">Anteil der Rücklagen, der als Sicherheitsreserve entnommen wird (%)</label>
+      <input id="reserveSplit" type="number" value="100" step="1">
+    </div>
+
+    <div class="input-group">
+      <label for="b2">Leistung pro Woche (%)</label>
+      <input id="b2" type="number" value="18" step="0.1">
+    </div>
+
+    <div class="input-group">
+      <label for="b3">Wechselkurs EUR → USD</label>
+      <input id="b3" type="number" value="1.16" step="0.0001">
+    </div>
+
+    <div class="input-group">
+      <label for="b4">Monatliche Fixkosten (EUR)</label>
+      <input id="b4" type="number" value="3600" step="1">
+    </div>
+
+    <div class="input-group">
+      <label for="b5">Steuersatz auf Gewinne (%)</label>
+      <input id="b5" type="number" value="26.375" step="0.001">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ergebnisse (Monat)</h2>
+    <table id="tbl-main"><tbody><tr><td class="label">Startkapital</td><td class="value"> 6359,88 $<div class="eur">(5482,65 €)</div></td></tr><tr><td class="label">Brutto-Gewinn</td><td class="value"> 5970,51 $<div class="eur">(5146,99 €)</div></td></tr><tr><td class="label">Steueranteil (26,375 %)</td><td class="value"> 1574,72 $<div class="eur">(1357,52 €)</div></td></tr><tr><td class="label">Netto-Gewinn vor Auszahlung</td><td class="value  highlight"> 4395,79 $<div class="eur">(3789,47 €)</div></td></tr><tr><td class="label">Auszahlung Fixkosten</td><td class="value negative"> -4176,00 $<div class="eur">(3600,00 €)</div></td></tr><tr><td class="label">Rücklagenbeitrag (gesamt)</td><td class="value"> 219,79 $<div class="eur">(189,47 €)</div></td></tr><tr><td class="label">Endkapital</td><td class="value"> 6579,67 $ (ROE: 3,46 %)<div class="eur">(5672,13 €)</div></td></tr></tbody></table>
+
+    <div class="sec-title">Sicherheitsreserven (Empfehlung)</div>
+    <table id="tbl-safety"><tbody><tr><td class="label">Notgroschen (5× Fixkosten)</td><td class="value"> 20880,00 $<div class="eur">(18000,00 €)</div></td></tr><tr><td class="label">Doppeltes Startkapital</td><td class="value"> 12719,76 $<div class="eur">(10965,31 €)</div></td></tr><tr><td class="label">Startkapital + 3× Fixkosten</td><td class="value"> 18887,88 $<div class="eur">(16282,65 €)</div></td></tr></tbody></table>
+
+    <div class="accordion" id="acc-ges">▸ Gesamtlast &amp; Aufteilung</div>
+    <div class="panel" id="panel-ges">
+      <table id="tbl-load"><tbody><tr><td class="label">Steueranteil</td><td class="value"> 1574,72 $<div class="eur">(1357,52 €)</div></td></tr><tr><td class="label">Rücklagenbeitrag (gesamt)</td><td class="value"> 219,79 $<div class="eur">(189,47 €)</div></td></tr><tr><td class="label">Gesamtlast (Steuern + Rücklagen)</td><td class="value"> 1794,51 $<div class="eur">(1546,99 €)</div></td></tr></tbody></table>
+    </div>
+
+    <div class="accordion" id="acc-exp">▸ Erklärung &amp; Einordnung</div>
+    <div class="panel" id="panel-exp">
+      <div id="exp-text" class="small"><p>In diesem Modus legst du fest, wie viel Prozent deines monatlichen Netto-Gewinns (nach Steuern) als Rücklage im System bleiben sollen. Der Rechner skaliert das Startkapital so, dass deine Fixkosten vollständig gedeckt werden und zusätzlich der gewünschte Rücklagenbetrag übrig bleibt.</p><p>Mit monatlichen Fixkosten von 3600,00 € (4176,00 $) und einem Steuersatz von 26,375 % (bestehend aus ca. 25 % Kapitalertragssteuer und 5,5 % Solidaritätszuschlag, ohne Kirchensteuer) arbeitest du mit einer Wochenperformance von 18,00 % – das entspricht ungefähr 93,9 % pro Monat.</p><p>Um diese Struktur zu tragen, ergibt sich daraus ein benötigtes Startkapital von 6359,88 $ (5482,65 €). In diesem Szenario entsteht ein monatlicher Brutto-Gewinn von 5970,51 $ (5146,99 €), wovon 1574,72 $ (1357,52 €) als Steuern zurückgelegt werden. Der verbleibende Netto-Gewinn vor Auszahlung beträgt 4395,79 $ (3789,47 €).</p><p>Nach Abzug deiner Fixkosten von 3600,00 € bleibt ein theoretischer Rücklagen- bzw. Pufferbetrag von 219,79 $ (189,47 €) übrig. Auf Basis der aktuellen Einstellung werden davon 50,0 % (109,89 $ (94,74 €)) als Sicherheitsreserve beiseite gelegt und 50,0 % (109,89 $ (94,74 €)) im System reinvestiert.</p><p>Die Sicherheitsrücklage wird außerhalb des Trading-Kapitals betrachtet und dient dazu, einen Notgroschen aufzubauen. In der Simulation wird ermittelt, in welchem Monat die kumulierte Sicherheitsrücklage mindestens fünf Monatsfixkosten (20880,00 $ (18000,00 €)) erreicht. Das ist der Zeitpunkt, an dem du theoretisch mehrere Monate ohne laufende Gewinne überbrücken könntest.</p><p>Als zusätzliche Orientierung können ein doppeltes Startkapital (12719,76 $ (10965,31 €)) oder die Kombination aus Startkapital plus drei Monats-Fixkosten (18887,88 $ (16282,65 €)) als Zielmarken für dein Sicherheitsniveau dienen.</p><p>Steuern werden zwar formal nur einmal pro Jahr festgesetzt, aber ohne laufende Steuerrücklagen besteht das Risiko, dass am Jahresende hohe Buchgewinne aufgelaufen sind, während das verfügbare Kapital durch nachfolgende Verluste bereits wieder geschrumpft ist. Deshalb ist es sinnvoll, Steuerrücklagen regelmäßig – zum Beispiel monatlich oder quartalsweise – zu bilden und das Geld bewusst beiseite zu legen.</p><p>Ein höherer Sicherheitsrücklagen-Anteil beschleunigt den Aufbau deines Notgroschens, bremst aber das Wachstum des Trading-Kapitals. Ein niedrigerer Anteil verstärkt den Zinseszinseffekt, verschiebt dafür den Zeitpunkt, an dem dein Notgroschen vollständig gefüllt ist, weiter nach hinten. Mit der Kombination aus Puffer-Prozent und Aufteilungsquote kannst du dieses Verhältnis bewusst steuern.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kapitalentwicklung über 12 Monate</h3>
+    <canvas id="cap-chart" width="1530" height="180"></canvas>
+    <table id="tbl-sim"><tbody><tr><td class="label">Monat</td><td class="value">Kapital Beginn</td><td class="value">Brutto-Gewinn</td><td class="value">Kapital Ende</td><td class="value">kumulierte Sicherheitsrücklage</td></tr><tr><td class="label">1</td><td class="value">6359,88 $<div class="eur">(5482,65 €)</div></td><td class="value">5970,51 $<div class="eur">(5146,99 €)</div></td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">109,89 $<div class="eur">(94,74 €)</div></td></tr><tr><td class="label">2</td><td class="value">6469,77 $<div class="eur">(5577,39 €)</div></td><td class="value">6073,68 $<div class="eur">(5235,93 €)</div></td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">257,77 $<div class="eur">(222,21 €)</div></td></tr><tr><td class="label">3</td><td class="value">6617,65 $<div class="eur">(5704,87 €)</div></td><td class="value">6212,50 $<div class="eur">(5355,60 €)</div></td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">456,74 $<div class="eur">(393,74 €)</div></td></tr><tr><td class="label">4</td><td class="value">6816,62 $<div class="eur">(5876,40 €)</div></td><td class="value">6399,29 $<div class="eur">(5516,63 €)</div></td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">724,48 $<div class="eur">(624,55 €)</div></td></tr><tr><td class="label">5</td><td class="value">7084,36 $<div class="eur">(6107,21 €)</div></td><td class="value">6650,64 $<div class="eur">(5733,31 €)</div></td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">1084,75 $<div class="eur">(935,13 €)</div></td></tr><tr><td class="label">6</td><td class="value">7444,63 $<div class="eur">(6417,78 €)</div></td><td class="value">6988,85 $<div class="eur">(6024,87 €)</div></td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">1569,52 $<div class="eur">(1353,04 €)</div></td></tr><tr><td class="label">7</td><td class="value">7929,40 $<div class="eur">(6835,69 €)</div></td><td class="value">7443,94 $<div class="eur">(6417,19 €)</div></td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">2221,82 $<div class="eur">(1915,37 €)</div></td></tr><tr><td class="label">8</td><td class="value">8581,70 $<div class="eur">(7398,02 €)</div></td><td class="value">8056,31 $<div class="eur">(6945,10 €)</div></td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">3099,55 $<div class="eur">(2672,03 €)</div></td></tr><tr><td class="label">9</td><td class="value">9459,43 $<div class="eur">(8154,68 €)</div></td><td class="value">8880,30 $<div class="eur">(7655,43 €)</div></td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">4280,61 $<div class="eur">(3690,19 €)</div></td></tr><tr><td class="label">10</td><td class="value">10640,49 $<div class="eur">(9172,84 €)</div></td><td class="value">9989,06 $<div class="eur">(8611,26 €)</div></td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">5869,84 $<div class="eur">(5060,20 €)</div></td></tr><tr><td class="label">11</td><td class="value">12229,71 $<div class="eur">(10542,86 €)</div></td><td class="value">11480,98 $<div class="eur">(9897,40 €)</div></td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">8008,27 $<div class="eur">(6903,68 €)</div></td></tr><tr><td class="label">12</td><td class="value">14368,15 $<div class="eur">(12386,34 €)</div></td><td class="value">13488,50 $<div class="eur">(11628,02 €)</div></td><td class="value">17245,61 $<div class="eur">(14866,90 €)</div></td><td class="value">10885,73 $<div class="eur">(9384,25 €)</div></td></tr></tbody></table>
+    <p id="notgroschen-text" class="notgroschen-note">Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.</p>
+  </div>
+
+  <script>
+    function fmt(n, digits = 2) {
+      if (!isFinite(n)) return "-";
+      return n.toFixed(digits).replace(".", ",");
+    }
+
+    function usd(v) {
+      return fmt(v) + " $";
+    }
+
+    function eur(v) {
+      return "(" + fmt(v) + " €)";
+    }
+
+    function togglePanel(id, accEl) {
+      const panel = document.getElementById(id);
+      const open = panel.style.display === "block";
+      panel.style.display = open ? "none" : "block";
+      if (accEl) {
+        accEl.textContent = (open ? "▸" : "▾") + accEl.textContent.slice(1);
+      }
+    }
+
+    function trMain(label, usdVal, eurVal, highlight = false, negative = false, extra = "") {
+      const clsVal = ["value", negative ? "negative" : "", highlight ? "highlight" : ""]
+        .join(" ")
+        .trim();
+      return (
+        "<tr>" +
+        '<td class="label">' +
+        label +
+        "</td>" +
+        '<td class="' +
+        clsVal +
+        '"> ' +
+        usd(usdVal) +
+        (extra || "") +
+        '<div class="eur">' +
+        eur(eurVal) +
+        "</div></td></tr>"
+      );
+    }
+
+    function recalc() {
+      const mode = document.getElementById("mode").value;
+      const pufInput = parseFloat(document.getElementById("puf").value || "0");
+      const reserveSplitInput = parseFloat(document.getElementById("reserveSplit").value || "0");
+      const B2 = parseFloat(document.getElementById("b2").value || "0") / 100;
+      const B3 = parseFloat(document.getElementById("b3").value || "0");
+      const B4 = parseFloat(document.getElementById("b4").value || "0");
+      const B5 = parseFloat(document.getElementById("b5").value || "0") / 100;
+
+      const lblPuf = document.getElementById("lbl-puf");
+      if (mode === "puf") {
+        lblPuf.textContent = "Rücklagen-Prozent (vom Netto-Gewinn)";
+      } else {
+        lblPuf.textContent = "ROE-Ziel auf das Kapital (Monat, in %)";
+      }
+
+      const perf = Math.pow(1 + B2, 4) - 1;
+
+      let startEUR = 0;
+      let netBeforeOutEUR = 0;
+      let ruecklageEUR = 0;
+
+      if (perf <= 0 || B3 <= 0 || B4 <= 0) {
+        document.getElementById("tbl-main").innerHTML = "<tr><td>Bitte Eingaben prüfen.</td></tr>";
+        document.getElementById("tbl-load").innerHTML = "";
+        document.getElementById("tbl-safety").innerHTML = "";
+        document.getElementById("tbl-sim").innerHTML = "";
+        document.getElementById("notgroschen-text").textContent = "";
+        document.getElementById("exp-text").textContent = "";
+        drawChart([]);
+        return;
+      }
+
+      if (mode === "puf") {
+        const p = pufInput / 100;
+        const denom = (1 - p) * perf * (1 - B5);
+        if (denom <= 0) {
+          document.getElementById("tbl-main").innerHTML =
+            "<tr><td>Rücklagen-Prozent zu hoch für diese Performance.</td></tr>";
+          return;
+        }
+        startEUR = B4 / denom;
+        const brutEUR = startEUR * perf;
+        const taxEUR = brutEUR * B5;
+        netBeforeOutEUR = brutEUR - taxEUR;
+        ruecklageEUR = netBeforeOutEUR - B4;
+      } else {
+        const roe = pufInput / 100;
+        const denom = perf * (1 - B5) - roe;
+        if (denom <= 0) {
+          document.getElementById("tbl-main").innerHTML =
+            "<tr><td>ROE-Ziel zu hoch für diese Performance.</td></tr>";
+          return;
+        }
+        startEUR = B4 / denom;
+        const brutEUR = startEUR * perf;
+        const taxEUR = brutEUR * B5;
+        netBeforeOutEUR = brutEUR - taxEUR;
+        ruecklageEUR = roe * startEUR;
+      }
+
+      const brutEUR = startEUR * perf;
+      const taxEUR = brutEUR * B5;
+      const netEUR = brutEUR - taxEUR;
+      const payoutEUR = B4;
+      const payoutUSD = -payoutEUR * B3;
+      const ruecklageUSD = ruecklageEUR * B3;
+
+      const startUSD = startEUR * B3;
+      const endUSD = startUSD + ruecklageUSD;
+      const endEUR = endUSD / B3;
+      const roeReal = (endUSD - startUSD) / startUSD;
+
+      const pufferGesamtEUR = ruecklageEUR;
+      const reserveRatio = reserveSplitInput / 100;
+      const monatlicheReserveEUR = pufferGesamtEUR * reserveRatio;
+      const monatlicherReinvestEUR = pufferGesamtEUR - monatlicheReserveEUR;
+
+      const mainRows = [];
+      mainRows.push(trMain("Startkapital", startUSD, startEUR));
+      mainRows.push(trMain("Brutto-Gewinn", brutEUR * B3, brutEUR));
+      mainRows.push(
+        trMain(
+          `Steueranteil (${fmt(B5 * 100, 3).replace(".", ",")} %)`,
+          taxEUR * B3,
+          taxEUR
+        )
+      );
+      mainRows.push(
+        trMain("Netto-Gewinn vor Auszahlung", netEUR * B3, netEUR, true)
+      );
+      mainRows.push(
+        trMain("Auszahlung Fixkosten", payoutUSD, payoutEUR, false, true)
+      );
+      mainRows.push(trMain("Rücklagenbeitrag (gesamt)", ruecklageUSD, ruecklageEUR));
+      mainRows.push(
+        trMain(
+          "Endkapital",
+          endUSD,
+          endEUR,
+          false,
+          false,
+          " (ROE: " + fmt(roeReal * 100, 2).replace(".", ",") + " %)"
+        )
+      );
+      document.getElementById("tbl-main").innerHTML = mainRows.join("");
+
+      const gesamtLastEUR = taxEUR + ruecklageEUR;
+      const loadRows = [];
+      loadRows.push(trMain("Steueranteil", taxEUR * B3, taxEUR));
+      loadRows.push(trMain("Rücklagenbeitrag (gesamt)", ruecklageUSD, ruecklageEUR));
+      loadRows.push(
+        trMain("Gesamtlast (Steuern + Rücklagen)", gesamtLastEUR * B3, gesamtLastEUR)
+      );
+      document.getElementById("tbl-load").innerHTML = loadRows.join("");
+
+      const notgEUR = 5 * B4;
+      const notgUSD = notgEUR * B3;
+      const safety2EUR = 2 * startEUR;
+      const safety2USD = safety2EUR * B3;
+      const safety3EUR = startEUR + 3 * B4;
+      const safety3USD = safety3EUR * B3;
+
+      const safetyRows = [];
+      safetyRows.push(trMain("Notgroschen (5× Fixkosten)", notgUSD, notgEUR));
+      safetyRows.push(trMain("Doppeltes Startkapital", safety2USD, safety2EUR));
+      safetyRows.push(
+        trMain("Startkapital + 3× Fixkosten", safety3USD, safety3EUR)
+      );
+      document.getElementById("tbl-safety").innerHTML = safetyRows.join("");
+
+      runSimulation(startEUR, B4, B3, perf, B5, notgEUR);
+
+      buildExplanation({
+        mode,
+        pufInput,
+        B2,
+        perf,
+        B3,
+        B4,
+        B5,
+        startEUR,
+        startUSD,
+        brutEUR,
+        taxEUR,
+        netEUR,
+        ruecklageEUR,
+        endEUR,
+        endUSD,
+        notgEUR,
+        notgUSD,
+        safety2EUR,
+        safety2USD,
+        safety3EUR,
+        safety3USD,
+        roeReal,
+        reserveSplitInput,
+        monatlicheReserveEUR,
+        monatlicherReinvestEUR,
+        pufferGesamtEUR,
+      });
+    }
+
+    function runSimulation(startEUR, fixEUR, rateEURtoUSD, perf, taxRate, notgEUR) {
+      const tbl = document.getElementById("tbl-sim");
+      const notgText = document.getElementById("notgroschen-text");
+      const rows = [];
+
+      rows.push(
+        "<tr>" +
+          '<td class="label">Monat</td>' +
+          '<td class="value">Kapital Beginn</td>' +
+          '<td class="value">Brutto-Gewinn</td>' +
+          '<td class="value">Kapital Ende</td>' +
+          '<td class="value">kumulierte Sicherheitsrücklage</td>' +
+        "</tr>"
+      );
+
+      let capEUR = startEUR;
+      let reserveBucketEUR = 0;
+      let hitMonth = -1;
+      const seriesUSD = [];
+
+      const reserveSplitInput = parseFloat(
+        document.getElementById("reserveSplit").value || "0"
+      );
+      const reserveSplit = reserveSplitInput / 100;
+
+      for (let m = 1; m <= 12; m++) {
+        const capStartEUR = capEUR;
+        const brutEUR = capStartEUR * perf;
+        const taxEUR = brutEUR * taxRate;
+        const netEUR = brutEUR - taxEUR;
+
+        let leftoverEUR = netEUR - fixEUR;
+        if (leftoverEUR < 0) leftoverEUR = 0;
+
+        const reserveAddEUR = leftoverEUR * reserveSplit;
+        const reinvestEUR = leftoverEUR - reserveAddEUR;
+
+        reserveBucketEUR += reserveAddEUR;
+        capEUR = capStartEUR + reinvestEUR;
+
+        if (hitMonth === -1 && reserveBucketEUR >= notgEUR) {
+          hitMonth = m;
+        }
+
+        const capStartUSD = capStartEUR * rateEURtoUSD;
+        const capEndUSD = capEUR * rateEURtoUSD;
+        const brutUSD = brutEUR * rateEURtoUSD;
+
+        seriesUSD.push(capEndUSD);
+
+        rows.push(
+          "<tr>" +
+            '<td class="label">' +
+            m +
+            "</td>" +
+            '<td class="value">' +
+              usd(capStartUSD) +
+              '<div class="eur">' +
+              eur(capStartEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(brutUSD) +
+              '<div class="eur">' +
+              eur(brutEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(capEndUSD) +
+              '<div class="eur">' +
+              eur(capEUR) +
+              "</div>" +
+            "</td>" +
+            '<td class="value">' +
+              usd(reserveBucketEUR * rateEURtoUSD) +
+              '<div class="eur">' +
+              eur(reserveBucketEUR) +
+              "</div>" +
+            "</td>" +
+          "</tr>"
+        );
+      }
+
+      tbl.innerHTML = rows.join("");
+      if (hitMonth === -1) {
+        notgText.textContent =
+          "Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
+      } else {
+        notgText.textContent =
+          "Notgroschen wird mit diesen Parametern im Monat " +
+          hitMonth +
+          " durch die entnommene Sicherheitsrücklage erreicht.";
+      }
+
+      drawChart(seriesUSD, hitMonth - 1);
+    }
+
+    function drawChart(series, hitIndex) {
+      const canvas = document.getElementById("cap-chart");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!series || series.length === 0) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 18;
+
+      const max = Math.max.apply(null, series);
+      const min = Math.min.apply(null, series);
+      const range = max - min || 1;
+
+      ctx.strokeStyle = "#3fe6c4";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+
+      series.forEach((v, i) => {
+        const x = pad + (i * (w - 2 * pad)) / (series.length - 1);
+        const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      if (hitIndex >= 0 && hitIndex < series.length) {
+        const v = series[hitIndex];
+        const x = pad + (hitIndex * (w - 2 * pad)) / (series.length - 1);
+        const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+        ctx.fillStyle = "#ffcc66";
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function buildExplanation(data) {
+      const {
+        mode,
+        B2,
+        perf,
+        B3,
+        B4,
+        B5,
+        startEUR,
+        startUSD,
+        brutEUR,
+        taxEUR,
+        netEUR,
+        ruecklageEUR,
+        endEUR,
+        endUSD,
+        notgEUR,
+        notgUSD,
+        safety2EUR,
+        safety2USD,
+        safety3EUR,
+        safety3USD,
+        roeReal,
+        reserveSplitInput,
+        monatlicheReserveEUR,
+        monatlicherReinvestEUR,
+        pufferGesamtEUR,
+      } = data;
+
+      const perfMonthPct = perf * 100;
+      const perfWeekPct = B2 * 100;
+
+      const steuerText =
+        fmt(B5 * 100, 3).replace(".", ",") +
+        " % (bestehend aus ca. 25 % Kapitalertragssteuer und 5,5 % Solidaritätszuschlag, ohne Kirchensteuer)";
+
+      const modeText =
+        mode === "puf"
+          ? "In diesem Modus legst du fest, wie viel Prozent deines monatlichen Netto-Gewinns (nach Steuern) als Rücklage im System bleiben sollen. Der Rechner skaliert das Startkapital so, dass deine Fixkosten vollständig gedeckt werden und zusätzlich der gewünschte Rücklagenbetrag übrig bleibt."
+          : "In diesem Modus gibst du ein ROE-Ziel pro Monat an. Der Rechner bestimmt dann, wie groß dein Startkapital sein muss, damit nach Steuern und Fixkosten genau dieser zusätzliche Kapitalzuwachs als Rücklage aufgebaut werden kann.";
+
+      const s1 =
+        "Mit monatlichen Fixkosten von " +
+        fmt(B4, 2).replace(".", ",") +
+        " € (" +
+        usd(B4 * B3) +
+        ") und einem Steuersatz von " +
+        steuerText +
+        " arbeitest du mit einer Wochenperformance von " +
+        fmt(perfWeekPct, 2).replace(".", ",") +
+        " % – das entspricht ungefähr " +
+        fmt(perfMonthPct, 1).replace(".", ",") +
+        " % pro Monat.";
+
+      const s2 =
+        "Um diese Struktur zu tragen, ergibt sich daraus ein benötigtes Startkapital von " +
+        usd(startUSD) +
+        " " +
+        eur(startEUR) +
+        ". In diesem Szenario entsteht ein monatlicher Brutto-Gewinn von " +
+        usd(brutEUR * B3) +
+        " " +
+        eur(brutEUR) +
+        ", wovon " +
+        usd(taxEUR * B3) +
+        " " +
+        eur(taxEUR) +
+        " als Steuern zurückgelegt werden. Der verbleibende Netto-Gewinn vor Auszahlung beträgt " +
+        usd(netEUR * B3) +
+        " " +
+        eur(netEUR) +
+        ".";
+
+      const s3 =
+        "Nach Abzug deiner Fixkosten von " +
+        fmt(B4, 2).replace(".", ",") +
+        " € bleibt ein theoretischer Rücklagen- bzw. Pufferbetrag von " +
+        usd(pufferGesamtEUR * B3) +
+        " " +
+        eur(pufferGesamtEUR) +
+        " übrig. Auf Basis der aktuellen Einstellung werden davon " +
+        fmt(reserveSplitInput, 1).replace(".", ",") +
+        " % (" +
+        usd(monatlicheReserveEUR * B3) +
+        " " +
+        eur(monatlicheReserveEUR) +
+        ") als Sicherheitsreserve beiseite gelegt und " +
+        fmt(100 - reserveSplitInput, 1).replace(".", ",") +
+        " % (" +
+        usd(monatlicherReinvestEUR * B3) +
+        " " +
+        eur(monatlicherReinvestEUR) +
+        ") im System reinvestiert.";
+
+      const s4 =
+        "Die Sicherheitsrücklage wird außerhalb des Trading-Kapitals betrachtet und dient dazu, einen Notgroschen aufzubauen. In der Simulation wird ermittelt, in welchem Monat die kumulierte Sicherheitsrücklage mindestens fünf Monatsfixkosten (" +
+        usd(notgUSD) +
+        " " +
+        eur(notgEUR) +
+        ") erreicht. Das ist der Zeitpunkt, an dem du theoretisch mehrere Monate ohne laufende Gewinne überbrücken könntest.";
+
+      const s5 =
+        "Als zusätzliche Orientierung können ein doppeltes Startkapital (" +
+        usd(safety2USD) +
+        " " +
+        eur(safety2EUR) +
+        ") oder die Kombination aus Startkapital plus drei Monats-Fixkosten (" +
+        usd(safety3USD) +
+        " " +
+        eur(safety3EUR) +
+        ") als Zielmarken für dein Sicherheitsniveau dienen.";
+
+      const s6 =
+        "Steuern werden zwar formal nur einmal pro Jahr festgesetzt, aber ohne laufende Steuerrücklagen besteht das Risiko, dass am Jahresende hohe Buchgewinne aufgelaufen sind, während das verfügbare Kapital durch nachfolgende Verluste bereits wieder geschrumpft ist. Deshalb ist es sinnvoll, Steuerrücklagen regelmäßig – zum Beispiel monatlich oder quartalsweise – zu bilden und das Geld bewusst beiseite zu legen.";
+
+      const s7 =
+        "Ein höherer Sicherheitsrücklagen-Anteil beschleunigt den Aufbau deines Notgroschens, bremst aber das Wachstum des Trading-Kapitals. Ein niedrigerer Anteil verstärkt den Zinseszinseffekt, verschiebt dafür den Zeitpunkt, an dem dein Notgroschen vollständig gefüllt ist, weiter nach hinten. Mit der Kombination aus Puffer-Prozent und Aufteilungsquote kannst du dieses Verhältnis bewusst steuern.";
+
+      const expText =
+        "<p>" +
+        modeText +
+        "</p>" +
+        "<p>" +
+        s1 +
+        "</p>" +
+        "<p>" +
+        s2 +
+        "</p>" +
+        "<p>" +
+        s3 +
+        "</p>" +
+        "<p>" +
+        s4 +
+        "</p>" +
+        "<p>" +
+        s5 +
+        "</p>" +
+        "<p>" +
+        s6 +
+        "</p>" +
+        "<p>" +
+        s7 +
+        "</p>";
+
+      document.getElementById("exp-text").innerHTML = expText;
+    }
+
+    document.getElementById("mode").addEventListener("change", recalc);
+    document.getElementById("puf").addEventListener("input", recalc);
+    document.getElementById("reserveSplit").addEventListener("input", recalc);
+    document.getElementById("b2").addEventListener("input", recalc);
+    document.getElementById("b3").addEventListener("input", recalc);
+    document.getElementById("b4").addEventListener("input", recalc);
+    document.getElementById("b5").addEventListener("input", recalc);
+
+    document
+      .getElementById("acc-ges")
+      .addEventListener("click", function () {
+        togglePanel("panel-ges", this);
+      });
+    document
+      .getElementById("acc-exp")
+      .addEventListener("click", function () {
+        togglePanel("panel-exp", this);
+      });
+
+    window.addEventListener("load", function () {
+      const canvas = document.getElementById("cap-chart");
+      canvas.width = canvas.clientWidth;
+      canvas.height = 180;
+      recalc();
+    });
+  </script>
+
+
+</body></html>
