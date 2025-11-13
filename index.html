@@ -458,13 +458,9 @@
         "</tr>"
       );
 
-      const displayMonths = 12;
-      const maxMonths = 600;
-      const stagnationThreshold = 24;
       let capEUR = startEUR;
       let reserveBucketEUR = 0;
       let hitMonth = -1;
-      let stagnationCounter = 0;
       const seriesUSD = [];
 
       const reserveSplitInput = parseFloat(
@@ -472,8 +468,9 @@
       );
       const reserveSplit = reserveSplitInput / 100;
 
-      function simulateStep(currentCapEUR) {
-        const brutEUR = currentCapEUR * perf;
+      for (let m = 1; m <= 12; m++) {
+        const capStartEUR = capEUR;
+        const brutEUR = capStartEUR * perf;
         const taxEUR = brutEUR * taxRate;
         const netEUR = brutEUR - taxEUR;
 
@@ -482,30 +479,9 @@
 
         const reserveAddEUR = leftoverEUR * reserveSplit;
         const reinvestEUR = leftoverEUR - reserveAddEUR;
-        const nextCapEUR = currentCapEUR + reinvestEUR;
 
-        return {
-          brutEUR,
-          taxEUR,
-          netEUR,
-          reserveAddEUR,
-          reinvestEUR,
-          nextCapEUR,
-        };
-      }
-
-      for (let m = 1; m <= displayMonths; m++) {
-        const capStartEUR = capEUR;
-        const step = simulateStep(capStartEUR);
-
-        reserveBucketEUR += step.reserveAddEUR;
-        capEUR = step.nextCapEUR;
-
-        if (step.reserveAddEUR === 0 && step.reinvestEUR === 0) {
-          stagnationCounter += 1;
-        } else {
-          stagnationCounter = 0;
-        }
+        reserveBucketEUR += reserveAddEUR;
+        capEUR = capStartEUR + reinvestEUR;
 
         if (hitMonth === -1 && reserveBucketEUR >= notgEUR) {
           hitMonth = m;
@@ -513,7 +489,7 @@
 
         const capStartUSD = capStartEUR * rateEURtoUSD;
         const capEndUSD = capEUR * rateEURtoUSD;
-        const brutUSD = step.brutEUR * rateEURtoUSD;
+        const brutUSD = brutEUR * rateEURtoUSD;
 
         seriesUSD.push(capEndUSD);
 
@@ -531,7 +507,7 @@
             '<td class="value">' +
               usd(brutUSD) +
               '<div class="eur">' +
-              eur(step.brutEUR) +
+              eur(brutEUR) +
               "</div>" +
             "</td>" +
             '<td class="value">' +
@@ -550,54 +526,18 @@
         );
       }
 
-      if (hitMonth === -1) {
-        for (let m = displayMonths + 1; m <= maxMonths; m++) {
-          const step = simulateStep(capEUR);
-
-          reserveBucketEUR += step.reserveAddEUR;
-          capEUR = step.nextCapEUR;
-
-          if (step.reserveAddEUR === 0 && step.reinvestEUR === 0) {
-            stagnationCounter += 1;
-          } else {
-            stagnationCounter = 0;
-          }
-
-          if (reserveBucketEUR >= notgEUR) {
-            hitMonth = m;
-            break;
-          }
-
-          if (stagnationCounter >= stagnationThreshold) {
-            break;
-          }
-        }
-      }
-
       tbl.innerHTML = rows.join("");
-
       if (hitMonth === -1) {
-        if (stagnationCounter >= stagnationThreshold) {
-          notgText.textContent =
-            "Notgroschen wird mit diesen Parametern nicht erreicht, da kein überschüssiger Betrag für die Sicherheitsrücklage entsteht.";
-        } else {
-          notgText.textContent =
-            "Notgroschen wird innerhalb von " +
-            maxMonths +
-            " Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
-        }
+        notgText.textContent =
+          "Notgroschen wird innerhalb von zwölf Monaten mit diesen Parametern nicht vollständig aus der Sicherheitsrücklage aufgebaut.";
       } else {
         notgText.textContent =
           "Notgroschen wird mit diesen Parametern im Monat " +
           hitMonth +
-          " durch die entnommene Sicherheitsrücklage erreicht." +
-          (hitMonth > displayMonths
-            ? " (Berechnung berücksichtigt zusätzliche Monate außerhalb der Tabelle.)"
-            : "");
+          " durch die entnommene Sicherheitsrücklage erreicht.";
       }
 
-      const chartHitIndex = hitMonth > 0 && hitMonth <= displayMonths ? hitMonth - 1 : -1;
-      drawChart(seriesUSD, chartHitIndex);
+      drawChart(seriesUSD, hitMonth - 1);
     }
 
     function drawChart(series, hitIndex) {
