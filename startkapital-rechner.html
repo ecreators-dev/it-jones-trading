@@ -163,6 +163,8 @@
     }
 
     .small { font-size: 0.72rem; }
+
+    .short { white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -475,10 +477,10 @@
     rows.push(
       "<tr>" +
         '<td class="label">Monat</td>' +
-        '<td class="value">Kapital Beginn</td>' +
-        '<td class="value">Brutto-Gewinn</td>' +
-        '<td class="value">Kapital Ende</td>' +
-        '<td class="value">kumulierte Sicherheitsrücklage</td>' +
+        '<td class="value"><span class="short" title="Kapital zu Monatsbeginn">Startkap.</span></td>' +
+        '<td class="value"><span class="short" title="Brutto-Gewinn">Brutto</span></td>' +
+        '<td class="value"><span class="short" title="Kapital nach den Anpassungen">Kap. Ende</span></td>' +
+        '<td class="value"><span class="short" title="kumulierte Sicherheitsrücklage">Res. kum.</span></td>' +
       "</tr>"
     );
 

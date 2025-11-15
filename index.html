@@ -199,6 +199,10 @@
       font-size: 0.72rem;
     }
 
+    .short {
+      white-space: nowrap;
+    }
+
     .sim-summary {
       margin: 6px 0 4px;
       font-size: 0.75rem;
@@ -308,11 +312,11 @@
       <tbody>
         <tr>
           <td class="label">Monat</td>
-          <td class="value">Kapital Beginn</td>
-          <td class="value">Brutto-Gewinn</td>
-          <td class="value">Reinvestiert</td>
-          <td class="value">kumulierte Sicherheitsrücklage</td>
-          <td class="value">Kapital nächster Monat</td>
+          <td class="value"><span class="short" title="Kapital zu Monatsbeginn">Startkap.</span></td>
+          <td class="value"><span class="short" title="Brutto-Gewinn">Brutto</span></td>
+          <td class="value"><span class="short" title="Reinvestierter Betrag">Reinv.</span></td>
+          <td class="value"><span class="short" title="kumulierte Sicherheitsrücklage">Res. kum.</span></td>
+          <td class="value"><span class="short" title="Kapital im Folgemonat">Kap. Folg.</span></td>
         </tr>
         <tr>
           <td class="label" colspan="6">Wird mit deinen Eingaben berechnet …</td>
@@ -663,11 +667,11 @@
       rows.push(
         "<tr>" +
           '<td class="label">Monat</td>' +
-          '<td class="value">Kapital Beginn</td>' +
-          '<td class="value">Brutto-Gewinn</td>' +
-          '<td class="value">Reinvestiert</td>' +
-          '<td class="value">kumulierte Sicherheitsrücklage</td>' +
-          '<td class="value">Kapital nächster Monat</td>' +
+          '<td class="value"><span class="short" title="Kapital zu Monatsbeginn">Startkap.</span></td>' +
+          '<td class="value"><span class="short" title="Brutto-Gewinn">Brutto</span></td>' +
+          '<td class="value"><span class="short" title="Reinvestierter Betrag">Reinv.</span></td>' +
+          '<td class="value"><span class="short" title="kumulierte Sicherheitsrücklage">Res. kum.</span></td>' +
+          '<td class="value"><span class="short" title="Kapital im Folgemonat">Kap. Folg.</span></td>' +
         "</tr>"
       );
 
