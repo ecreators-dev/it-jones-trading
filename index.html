@@ -120,6 +120,15 @@
       vertical-align: top;
     }
 
+    th {
+      padding: 3px 2px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
     td.label {
       text-align: left;
       color: var(--text-muted);
@@ -147,6 +156,91 @@
     .highlight {
       color: var(--accent);
       font-weight: 600;
+    }
+
+    #tbl-main th.label {
+      text-align: left;
+    }
+
+    #tbl-main th.flow-head {
+      text-align: right;
+    }
+
+    #tbl-main td.flow-cell {
+      text-align: right;
+    }
+
+    #tbl-main td.flow-cell.reinvest {
+      color: #c3d2cf;
+    }
+
+    #tbl-main td.flow-cell.reinvest .eur {
+      color: #8ba6a1;
+    }
+
+    #tbl-main td.flow-cell.outflow {
+      color: var(--neg);
+    }
+
+    #tbl-main td.flow-cell.outflow .eur {
+      color: var(--neg);
+    }
+
+    #tbl-main td.flow-cell.highlight {
+      color: var(--accent);
+    }
+
+    #tbl-main td.flow-cell.highlight .eur {
+      color: var(--accent-soft);
+    }
+
+    #tbl-main td.flow-cell.bold,
+    #tbl-main td.flow-cell.bold .eur {
+      font-weight: 700;
+    }
+
+    #tbl-main tr.end-row td.flow-cell.bold .eur {
+      color: var(--accent-soft);
+    }
+
+    #tbl-main tr.end-row td.label {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    #tbl-main td.label {
+      width: 42%;
+    }
+
+    #tbl-main .label-note {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    #tbl-main tr.head-row th {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      font-size: 0.7rem;
+    }
+
+    #tbl-main td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    #tbl-main tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-summary {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .table-summary strong {
+      color: var(--accent);
     }
 
     .accordion {
@@ -277,7 +371,8 @@
 
   <div class="card">
     <h2>Ergebnisse (Monat)</h2>
-    <table id="tbl-main"><tbody><tr><td class="label">Startkapital</td><td class="value"> 6359,88 $<div class="eur">(5482,65 €)</div></td></tr><tr><td class="label">Brutto-Gewinn</td><td class="value"> 5970,51 $<div class="eur">(5146,99 €)</div></td></tr><tr><td class="label">Steueranteil (26,375 %)</td><td class="value"> 1574,72 $<div class="eur">(1357,52 €)</div></td></tr><tr><td class="label">Netto-Gewinn vor Auszahlung</td><td class="value  highlight"> 4395,79 $<div class="eur">(3789,47 €)</div></td></tr><tr><td class="label">Auszahlung Fixkosten</td><td class="value negative"> -4176,00 $<div class="eur">(3600,00 €)</div></td></tr><tr><td class="label">Rücklagenbeitrag (gesamt)</td><td class="value"> 219,79 $<div class="eur">(189,47 €)</div></td></tr><tr><td class="label">Endkapital</td><td class="value"> 6579,67 $ (ROE: 3,46 %)<div class="eur">(5672,13 €)</div></td></tr></tbody></table>
+    <table id="tbl-main"></table>
+    <p id="tbl-main-summary" class="table-summary"></p>
 
     <div class="split-summary">
       <h3>So verteilst du deinen Puffer</h3>
@@ -336,6 +431,10 @@
       return "(" + fmt(v) + " €)";
     }
 
+    function eurPlain(v) {
+      return fmt(v) + " €";
+    }
+
     function fmtPercent(value, digits = 1) {
       if (!isFinite(value)) return "-";
       const factor = Math.pow(10, digits);
@@ -375,6 +474,66 @@
       );
     }
 
+    function flowCell(amountUSD, amountEUR, type, options = {}) {
+      const { highlight = false, bold = false } = options;
+      const classes = ["value", "flow-cell", type];
+      if (highlight) classes.push("highlight");
+      if (amountUSD == null || amountEUR == null) {
+        return '<td class="' + classes.join(" ") + '">-</td>';
+      }
+      if (bold) classes.push("bold");
+      const strongOpen = bold ? "<strong>" : "";
+      const strongClose = bold ? "</strong>" : "";
+      return (
+        '<td class="' +
+        classes.join(" ") +
+        '">' +
+        strongOpen +
+        usd(amountUSD) +
+        strongClose +
+        '<div class="eur">' +
+        strongOpen +
+        eur(amountEUR) +
+        strongClose +
+        "</div></td>"
+      );
+    }
+
+    function flowRow(label, options = {}) {
+      const {
+        reinvestUSD = null,
+        reinvestEUR = null,
+        payoutUSD = null,
+        payoutEUR = null,
+        highlightReinvest = false,
+        highlightPayout = false,
+        boldReinvest = false,
+        boldPayout = false,
+        rowClass = ""
+      } = options;
+
+      const classes = ["flow-row"];
+      if (rowClass) classes.push(rowClass);
+
+      return (
+        '<tr class="' +
+        classes.join(" ") +
+        '">' +
+        '<td class="label">' +
+        label +
+        "</td>" +
+        flowCell(reinvestUSD, reinvestEUR, "reinvest", {
+          highlight: highlightReinvest,
+          bold: boldReinvest
+        }) +
+        flowCell(payoutUSD, payoutEUR, "outflow", {
+          highlight: highlightPayout,
+          bold: boldPayout
+        }) +
+        "</tr>"
+      );
+    }
+
     function recalc() {
       const mode = document.getElementById("mode").value;
       const pufInput = parseFloat(document.getElementById("puf").value || "0");
@@ -404,6 +563,8 @@
 
       if (perf <= 0 || B3 <= 0 || B4 <= 0) {
         document.getElementById("tbl-main").innerHTML = "<tr><td>Bitte Eingaben prüfen.</td></tr>";
+        const summaryEl = document.getElementById("tbl-main-summary");
+        if (summaryEl) summaryEl.textContent = "";
         document.getElementById("tbl-load").innerHTML = "";
         document.getElementById("tbl-safety").innerHTML = "";
         document.getElementById("tbl-sim").innerHTML = "";
@@ -419,6 +580,8 @@
         if (denom <= 0) {
           document.getElementById("tbl-main").innerHTML =
             "<tr><td>Rücklagen-Prozent zu hoch für diese Performance.</td></tr>";
+          const summaryEl = document.getElementById("tbl-main-summary");
+          if (summaryEl) summaryEl.textContent = "";
           return;
         }
         startEUR = B4 / denom;
@@ -432,6 +595,8 @@
         if (denom <= 0) {
           document.getElementById("tbl-main").innerHTML =
             "<tr><td>ROE-Ziel zu hoch für diese Performance.</td></tr>";
+          const summaryEl = document.getElementById("tbl-main-summary");
+          if (summaryEl) summaryEl.textContent = "";
           return;
         }
         startEUR = B4 / denom;
@@ -445,7 +610,7 @@
       const taxEUR = brutEUR * B5;
       const netEUR = brutEUR - taxEUR;
       const payoutEUR = B4;
-      const payoutUSD = -payoutEUR * B3;
+      const payoutUSD = payoutEUR * B3;
       const ruecklageUSD = ruecklageEUR * B3;
 
       const startUSD = startEUR * B3;
@@ -457,35 +622,80 @@
       const reserveRatio = reserveSplitInput / 100;
       const monatlicheReserveEUR = pufferGesamtEUR * reserveRatio;
       const monatlicherReinvestEUR = pufferGesamtEUR - monatlicheReserveEUR;
+      const steuerUSD = taxEUR * B3;
+      const reserveUSD = monatlicheReserveEUR * B3;
+      const reinvestUSD = monatlicherReinvestEUR * B3;
 
       const mainRows = [];
-      mainRows.push(trMain("Startkapital", startUSD, startEUR));
-      mainRows.push(trMain("Brutto-Gewinn", brutEUR * B3, brutEUR));
       mainRows.push(
-        trMain(
-          `Steueranteil (${fmt(B5 * 100, 3).replace(".", ",")} %)`,
-          taxEUR * B3,
-          taxEUR
-        )
+        flowRow("Startkapital", {
+          reinvestUSD: startUSD,
+          reinvestEUR: startEUR
+        })
       );
       mainRows.push(
-        trMain("Netto-Gewinn vor Auszahlung", netEUR * B3, netEUR, true)
+        flowRow("Brutto-Gewinn", {
+          reinvestUSD: brutEUR * B3,
+          reinvestEUR: brutEUR
+        })
       );
       mainRows.push(
-        trMain("Auszahlung Fixkosten", payoutUSD, payoutEUR, false, true)
+        flowRow(`Steueranteil (${fmt(B5 * 100, 3).replace(".", ",")} %)`, {
+          payoutUSD: steuerUSD,
+          payoutEUR: taxEUR
+        })
       );
-      mainRows.push(trMain("Rücklagenbeitrag (gesamt)", ruecklageUSD, ruecklageEUR));
       mainRows.push(
-        trMain(
-          "Endkapital",
-          endUSD,
-          endEUR,
-          false,
-          false,
-          " (ROE: " + fmt(roeReal * 100, 2).replace(".", ",") + " %)"
-        )
+        flowRow("Netto-Gewinn vor Auszahlung", {
+          reinvestUSD: netEUR * B3,
+          reinvestEUR: netEUR,
+          highlightReinvest: true
+        })
       );
-      document.getElementById("tbl-main").innerHTML = mainRows.join("");
+      mainRows.push(
+        flowRow("Auszahlung Fixkosten", {
+          payoutUSD,
+          payoutEUR
+        })
+      );
+      mainRows.push(
+        flowRow("Sicherungsanteil (Reserve)", {
+          payoutUSD: reserveUSD,
+          payoutEUR: monatlicheReserveEUR
+        })
+      );
+      mainRows.push(
+        flowRow("Reinvestierter Anteil", {
+          reinvestUSD: reinvestUSD,
+          reinvestEUR: monatlicherReinvestEUR
+        })
+      );
+      const endLabel =
+        'Endkapital <span class="label-note">(ROE: ' +
+        fmt(roeReal * 100, 2).replace(".", ",") +
+        " %)</span>";
+      mainRows.push(
+        flowRow(endLabel, {
+          reinvestUSD: endUSD,
+          reinvestEUR: endEUR,
+          boldReinvest: true,
+          rowClass: "end-row"
+        })
+      );
+      const mainHeader =
+        '<tr class="head-row"><th class="label">Posten</th><th class="flow-head">Reinvestiert</th><th class="flow-head">Ausgezahlt / gesichert</th></tr>';
+      document.getElementById("tbl-main").innerHTML =
+        mainHeader + mainRows.join("");
+
+      const summaryEl = document.getElementById("tbl-main-summary");
+      if (summaryEl) {
+        summaryEl.innerHTML =
+          "Monatliches Endkapital: <strong>" +
+          usd(endUSD) +
+          '</strong><span class="eur-inline">(' +
+          eurPlain(endEUR) +
+          ")</span>.";
+      }
 
       const splitTextEl = document.getElementById("split-text");
       if (splitTextEl) {
