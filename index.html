@@ -213,11 +213,13 @@
     <h2>Eingaben</h2>
 
     <div class="input-group">
-      <label for="mode">Rücklagen-Modus</label>
-      <select id="mode">
-        <option value="puf">Rücklagen als % vom Netto-Gewinn (Monat)</option>
-        <option value="roe">ROE-Ziel in % auf das Kapital (Monat)</option>
-      </select>
+      <label for="b4">Ziel-Fixkosten (EUR)</label>
+      <input id="b4" type="number" value="3600" step="1">
+    </div>
+
+    <div class="input-group">
+      <label for="b2">Performance pro Woche (%)</label>
+      <input id="b2" type="number" value="18" step="0.1">
     </div>
 
     <div class="input-group">
@@ -255,18 +257,16 @@
     </div>
 
     <div class="input-group">
-      <label for="b2">Leistung pro Woche (%)</label>
-      <input id="b2" type="number" value="18" step="0.1">
+      <label for="mode">Rücklagen-Modus</label>
+      <select id="mode">
+        <option value="puf">Rücklagen als % vom Netto-Gewinn (Monat)</option>
+        <option value="roe">ROE-Ziel in % auf das Kapital (Monat)</option>
+      </select>
     </div>
 
     <div class="input-group">
       <label for="b3">Wechselkurs EUR → USD</label>
       <input id="b3" type="number" value="1.16" step="0.0001">
-    </div>
-
-    <div class="input-group">
-      <label for="b4">Monatliche Fixkosten (EUR)</label>
-      <input id="b4" type="number" value="3600" step="1">
     </div>
 
     <div class="input-group">
@@ -503,6 +503,8 @@
             : (monatlicherReinvestEUR / pufferGesamtEUR) * 100;
         const reservePctText = fmtPercent(reservePct, 1);
         const reinvestPctText = fmtPercent(reinvestPct, 1);
+        const reserveSettingText = fmtPercent(reserveSplitInput, 1);
+        const reinvestSettingText = fmtPercent(100 - reserveSplitInput, 1);
 
         const splitText =
           "Nach Steuern und Fixkosten bleiben dir <strong>" +
@@ -521,7 +523,11 @@
           usd(reinvestUSD) +
           "</strong> <span class=\"eur-inline\">" +
           eur(monatlicherReinvestEUR) +
-          "</span> bleibt im Trading-Konto und wird wieder investiert. Für die Steuern legst du zusätzlich <strong>" +
+          "</span> bleibt im Trading-Konto und wird wieder investiert. Deine Aufteilungs-Einstellung entspricht damit " +
+          reserveSettingText +
+          " % Sicherheitsreserve und " +
+          reinvestSettingText +
+          " % Reinvestition. Für die Steuern legst du zusätzlich <strong>" +
           usd(steuerUSD) +
           "</strong> <span class=\"eur-inline\">" +
           eur(taxEUR) +
